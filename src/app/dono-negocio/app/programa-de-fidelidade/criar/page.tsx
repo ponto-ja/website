@@ -1,5 +1,5 @@
-import { Plus } from 'lucide-react';
 import { Button } from '@/components/button';
+import { NewRewardModal } from './new-reward-modal';
 
 export default function CreateFidelityProgramPage() {
   return (
@@ -21,8 +21,9 @@ export default function CreateFidelityProgramPage() {
           <input
             type="text"
             id="fidelityProgramName"
+            autoFocus={true}
             placeholder="Digite o nome do programa"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700"
+            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
           />
         </div>
         <div className="flex flex-col mt-6">
@@ -33,7 +34,7 @@ export default function CreateFidelityProgramPage() {
             type="text"
             id="scoreRate"
             placeholder="Digite a taxa de pontos"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700"
+            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
           />
           <p className="font-inter font-normal text-sm text-gray-700">
             A cada <span className="font-semibold">R$ 0,00</span> em compras, o cliente
@@ -47,12 +48,7 @@ export default function CreateFidelityProgramPage() {
             Adicione as recompensas do seu programa de fidelidade
           </p>
           <div className="w-full flex justify-center mt-2">
-            <Button
-              type="button"
-              className="bg-violet-200 font-inter font-medium text-sm text-gray-600 flex items-center gap-1">
-              <Plus color="#4b5563" size={18} strokeWidth={3} />
-              Nova recompensa
-            </Button>
+            <NewRewardModal />
           </div>
         </div>
 
