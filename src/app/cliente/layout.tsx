@@ -8,7 +8,7 @@ export default function RootLayout({
 }>) {
   return (
     <div className="flex flex-col h-full justify-between">
-      <Header profile="owner" />
+      <Header profile="client" />
       {children}
       <Footer />
     </div>

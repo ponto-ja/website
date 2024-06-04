@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" className={`${inter.variable} antialiased`}>
-      <body className="w-screen h-screen">{children}</body>
+      <body className="w-full h-screen">{children}</body>
     </html>
   );
 }
