@@ -1,14 +1,20 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { FC } from 'react';
+import { ComponentProps, FC } from 'react';
+import { twMerge } from 'tailwind-merge';
 import LogoImage from '@/assets/images/logo.png';
 
 type HeaderProps = {
   profile?: 'client' | 'owner';
   showButtons?: boolean;
+  className?: ComponentProps<'header'>['className'];
 };
 
-export const Header: FC<HeaderProps> = ({ profile = 'owner', showButtons = true }) => {
+export const Header: FC<HeaderProps> = ({
+  profile = 'owner',
+  showButtons = true,
+  className,
+}) => {
   const baseLink = {
     client: '/cliente',
     owner: '/dono-negocio',
@@ -17,7 +23,11 @@ export const Header: FC<HeaderProps> = ({ profile = 'owner', showButtons = true 
   const createAccountLink = `${baseLink}/criar-conta`;
 
   return (
-    <header className="max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between">
+    <header
+      className={twMerge(
+        'max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between',
+        className,
+      )}>
       <Link href="/perfil">
         <Image
           src={{

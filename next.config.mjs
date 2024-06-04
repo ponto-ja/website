@@ -7,6 +7,11 @@ const nextConfig = {
         destination: '/perfil',
         permanent: false,
       },
+      {
+        source: '/dono-negocio/app',
+        destination: '/dono-negocio/app/painel',
+        permanent: false,
+      },
     ];
   },
 
