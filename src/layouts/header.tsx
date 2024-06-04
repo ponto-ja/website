@@ -28,7 +28,7 @@ export const Header: FC<HeaderProps> = ({
         'max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between',
         className,
       )}>
-      <Link href="/perfil">
+      <Link href="/perfil" className="relative">
         <Image
           src={{
             src: LogoImage.src,
@@ -37,6 +37,7 @@ export const Header: FC<HeaderProps> = ({
           }}
           alt="PontoJá"
         />
+        <h1 className="absolute top-0 opacity-0">Ponto Já</h1>
       </Link>
       {showButtons && (
         <div className="flex items-center gap-8">

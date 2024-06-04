@@ -15,12 +15,12 @@ export default function SignInPage() {
 
       <form className="mt-10 max-w-[360px] w-full">
         <div className="flex flex-col">
-          <label htmlFor="email" className="font-inter font-medium text-gray-700">
+          <label htmlFor="phone" className="font-inter font-medium text-gray-700">
             Telefone*
           </label>
           <input
-            type="email"
-            id="email"
+            type="text"
+            id="phone"
             placeholder="Digite seu número de telefone"
             className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700"
           />

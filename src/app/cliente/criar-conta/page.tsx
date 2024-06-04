@@ -15,34 +15,34 @@ export default function SignUpPage() {
 
       <form className="mt-10 max-w-[360px] w-full">
         <div className="flex flex-col">
-          <label htmlFor="email" className="font-inter font-medium text-gray-700">
+          <label htmlFor="firstName" className="font-inter font-medium text-gray-700">
             Nome*
           </label>
           <input
             type="text"
-            id="email"
+            id="firstName"
             placeholder="Digite seu nome"
             className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700"
           />
         </div>
         <div className="flex flex-col my-3">
-          <label htmlFor="email" className="font-inter font-medium text-gray-700">
+          <label htmlFor="lastName" className="font-inter font-medium text-gray-700">
             Sobrenome*
           </label>
           <input
             type="text"
-            id="email"
+            id="lastName"
             placeholder="Digite seu sobrenome"
             className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700"
           />
         </div>
         <div className="flex flex-col">
-          <label htmlFor="email" className="font-inter font-medium text-gray-700">
+          <label htmlFor="phone" className="font-inter font-medium text-gray-700">
             Telefone*
           </label>
           <input
-            type="email"
-            id="email"
+            type="text"
+            id="phone"
             placeholder="Digite seu número de telefone"
             className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700"
           />
