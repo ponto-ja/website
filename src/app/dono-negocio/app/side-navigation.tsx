@@ -21,12 +21,12 @@ export const SideNavigation = () => {
         active={pathname.includes('/programa-de-fidelidade')}
         icon={Gift}
       />
-      {/* <Navigation
+      <Navigation
         title="Participantes"
         href="/dono-negocio/app/participantes"
         active={pathname.includes('/participantes')}
         icon={Users}
-      /> */}
+      />
     </nav>
   );
 };

@@ -23,17 +23,18 @@ export default function BusinessOwnerPanelPage() {
           description="Clientes participantes"
         />
         <FidelityProgramCardInfo
-          title="Taxa de pontuação"
-          icon={HandCoins}
-          value="R$ 10,00"
-          description="RS 10,00 em compra = +1 ponto"
-        />
-        <FidelityProgramCardInfo
           title="Recompensas"
           icon={Gift}
           value="1"
           description="Opções de recompensas"
         />
+        <FidelityProgramCardInfo
+          title="Taxa de pontuação"
+          icon={HandCoins}
+          value="R$ 10,00"
+          description="RS 10,00 em compra = +1 ponto"
+        />
+
         <FidelityProgramCardInfo
           title="Dias ativos"
           icon={CalendarClock}
