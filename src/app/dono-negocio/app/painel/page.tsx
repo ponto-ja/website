@@ -1,8 +1,8 @@
-import { Button } from '@/components/button';
 import { FirstAccessFallback } from '../first-access-fallback';
-import { Plus, Users, HandCoins, Gift, CalendarClock, NotebookPen } from 'lucide-react';
+import { Users, HandCoins, Gift, CalendarClock, NotebookPen } from 'lucide-react';
 import { FidelityProgramCardInfo } from './fidelity-program-card-info';
 import { ScoreHistory } from './score-history';
+import { ScoreRegisterModal } from './score-register-modal';
 
 export default function BusinessOwnerPanelPage() {
   return (
@@ -12,12 +12,7 @@ export default function BusinessOwnerPanelPage() {
         <h2 className="font-inter font-bold text-[26px] text-gray-700">
           Meu Programa de Fidelidade
         </h2>
-        <Button
-          type="button"
-          className="bg-violet-900 font-inter font-medium text-sm text-white flex items-center gap-1 px-3 py-2">
-          <Plus color="#FFFFFF" size={18} strokeWidth={3} />
-          Cadastrar pontos
-        </Button>
+        <ScoreRegisterModal />
       </div>
 
       <div className="w-full grid grid-cols-4 gap-4 mt-4">
