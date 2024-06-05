@@ -12,6 +12,11 @@ const nextConfig = {
         destination: '/dono-negocio/app/painel',
         permanent: false,
       },
+      {
+        source: '/cliente/app',
+        destination: '/cliente/app/programas-de-fidelidade',
+        permanent: false,
+      },
     ];
   },
 
