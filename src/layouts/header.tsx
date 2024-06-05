@@ -1,6 +1,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ComponentProps, FC } from 'react';
+import { NotebookPen, Headset, LogOut } from 'lucide-react';
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarTrigger,
+} from '@/components/ui/menubar';
 import { twMerge } from 'tailwind-merge';
 import LogoImage from '@/assets/images/logo.png';
 
@@ -39,6 +48,28 @@ export const Header: FC<HeaderProps> = ({
         />
         <h1 className="absolute top-0 opacity-0">Ponto Já</h1>
       </Link>
+
+      <Menubar className="border-[2px] border-violet-900 bg-violet-200 rounded-full w-11 h-11 flex items-center justify-center">
+        <MenubarMenu>
+          <MenubarTrigger className="text-gray-700 font-semibold">TS</MenubarTrigger>
+          <MenubarContent className="border p-1 mr-5">
+            <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+              <NotebookPen color="#374151" size={20} strokeWidth={1.8} />
+              Dados do perfil
+            </MenubarItem>
+            <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+              <Headset color="#374151" size={20} strokeWidth={1.8} />
+              Falar com suporte
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+              <LogOut color="#374151" size={20} strokeWidth={1.8} />
+              Sair da conta
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+
       {showButtons && (
         <div className="flex items-center gap-8">
           <Link
