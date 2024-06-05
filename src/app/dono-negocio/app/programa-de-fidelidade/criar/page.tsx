@@ -1,9 +1,10 @@
 import { Button } from '@/components/button';
 import { NewRewardModal } from './new-reward-modal';
+import { Reward } from './reward';
 
 export default function CreateFidelityProgramPage() {
   return (
-    <div>
+    <div className="pb-6">
       <h2 className="font-inter font-bold text-2xl text-gray-700">
         Cadastrar programa de fidelidade
       </h2>
@@ -37,8 +38,8 @@ export default function CreateFidelityProgramPage() {
             className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
           />
           <p className="font-inter font-normal text-sm text-gray-700">
-            A cada <span className="font-semibold">R$ 0,00</span> em compras, o cliente
-            ganha +1 ponto
+            A cada <span className="font-semibold">R$ 0,00</span> em compras, o
+            participante ganha +1 ponto
           </p>
         </div>
 
@@ -47,12 +48,15 @@ export default function CreateFidelityProgramPage() {
           <p className="font-inter font-normal text-sm text-gray-700">
             Adicione as recompensas do seu programa de fidelidade
           </p>
+          <div className="my-2 flex flex-col gap-2">
+            <Reward />
+          </div>
           <div className="w-full flex justify-center mt-2">
             <NewRewardModal />
           </div>
         </div>
 
-        <Button className="bg-violet-900 font-inter font-normal text-base text-white mt-10 px-3 py-2">
+        <Button className="bg-violet-900 font-inter font-normal text-sm text-white mt-10 px-3 py-2">
           Cadastrar programa de fidelidade
         </Button>
       </form>
