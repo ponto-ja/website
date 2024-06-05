@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/button';
 import { Participant } from './participant';
-import { RewardAvailable } from './reward-available';
+import { RewardAvailable } from '../../../../components/reward-available';
 
 export const ParticipantInfoModal = () => {
   const [open, setOpen] = useState(false);

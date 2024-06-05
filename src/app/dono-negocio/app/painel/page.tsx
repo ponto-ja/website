@@ -1,6 +1,6 @@
 import { FirstAccessFallback } from '../first-access-fallback';
 import { Users, HandCoins, Gift, CalendarClock, NotebookPen } from 'lucide-react';
-import { FidelityProgramCardInfo } from './fidelity-program-card-info';
+import { FidelityProgramCardInfo } from '../../../../components/fidelity-program-card-info';
 import { ScoreHistory } from './score-history';
 import { ScoreRegisterModal } from './score-register-modal';
 
@@ -34,7 +34,6 @@ export default function BusinessOwnerPanelPage() {
           value="R$ 10,00"
           description="RS 10,00 em compra = +1 ponto"
         />
-
         <FidelityProgramCardInfo
           title="Dias ativos"
           icon={CalendarClock}
