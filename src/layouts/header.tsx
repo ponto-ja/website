@@ -34,7 +34,7 @@ export const Header: FC<HeaderProps> = ({
   return (
     <header
       className={twMerge(
-        'max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between',
+        'max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between max-[1060px]:px-4',
         className,
       )}>
       <Link href="/perfil" className="relative">

@@ -5,9 +5,9 @@ import userImage from '@/assets/images/user.png';
 
 export default function ProfilePage() {
   return (
-    <main className="w-full flex flex-col items-center -mt-[80px]">
+    <main className="w-full flex flex-col items-center -mt-[80px] max-[400px]:my-[30px]">
       <div className="mb-10">
-        <h2 className="font-inter font-semibold text-2xl text-gray-800 text-center">
+        <h2 className="font-inter font-semibold text-2xl text-gray-800 text-center max-[400px]:text-[20px]">
           Perfil da Conta
         </h2>
         <p className="font-inter font-normal text-sm text-gray-600 text-center">
@@ -15,7 +15,7 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-6 max-[400px]:grid-cols-1">
         <Link
           href="/dono-negocio/entrar"
           className="flex flex-col items-center gap-4 cursor-pointer px-3 py-4 border-[2px] border-violet-900 rounded-lg">
