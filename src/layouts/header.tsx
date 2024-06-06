@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ComponentProps, FC } from 'react';
-import { NotebookPen, Headset, LogOut, Menu } from 'lucide-react';
+import { NotebookPen, Headset, LogOut, Menu, Boxes, Gift, Users } from 'lucide-react';
 import {
   Menubar,
   MenubarContent,
@@ -34,7 +34,7 @@ export const Header: FC<HeaderProps> = ({
   return (
     <header
       className={twMerge(
-        'max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between max-[1060px]:px-4',
+        'max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between px-4',
         className,
       )}>
       <Link href="/perfil" className="relative">
@@ -49,26 +49,51 @@ export const Header: FC<HeaderProps> = ({
         <h1 className="absolute top-0 opacity-0">Ponto Já</h1>
       </Link>
 
-      {/* <Menubar className="border-[2px] border-violet-900 bg-violet-200 rounded-full w-11 h-11 flex items-center justify-center">
+      <Menubar className="border-[2px] border-violet-900 bg-violet-200 rounded-full w-11 h-11 flex items-center justify-center">
         <MenubarMenu>
           <MenubarTrigger className="text-gray-700 font-semibold">TS</MenubarTrigger>
           <MenubarContent className="border p-1 mr-5">
+            <div className="hidden max-[1000px]:block">
+              <Link href="/dono-negocio/app/painel">
+                <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+                  <Boxes color="#374151" size={20} strokeWidth={1.8} />
+                  Painel
+                </MenubarItem>
+              </Link>
+              <Link href="/dono-negocio/app/programa-de-fidelidade">
+                <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+                  <Gift color="#374151" size={20} strokeWidth={1.8} />
+                  Programa de Fidelidade
+                </MenubarItem>
+              </Link>
+              <Link href="/dono-negocio/app/participantes">
+                <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+                  <Users color="#374151" size={20} strokeWidth={1.8} />
+                  Participantes
+                </MenubarItem>
+              </Link>
+
+              <MenubarSeparator />
+            </div>
+
             <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
               <NotebookPen color="#374151" size={20} strokeWidth={1.8} />
-              Dados do perfil
+              Dados do Perfil
             </MenubarItem>
             <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
               <Headset color="#374151" size={20} strokeWidth={1.8} />
-              Falar com suporte
+              Falar com Suporte
             </MenubarItem>
+
             <MenubarSeparator />
+
             <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
               <LogOut color="#374151" size={20} strokeWidth={1.8} />
-              Sair da conta
+              Sair da Conta
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
-      </Menubar> */}
+      </Menubar>
 
       {showButtons && (
         <>

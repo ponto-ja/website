@@ -42,7 +42,9 @@ export const ScoreRegisterModal = () => {
             />
           </div>
           <div className="w-full bg-red-200 p-[6px] rounded flex items-center gap-2 my-2 border-[1px] border-red-500 mb-4">
-            <CircleAlert strokeWidth={2} color="#ef4444" size={20} />
+            <span>
+              <CircleAlert strokeWidth={2} color="#ef4444" size={20} />
+            </span>
             <p className="font-inter font-medium text-sm text-red-500">
               Usuário ainda não cadastrado. Informe os dados abaixo para cadastrá-lo.
             </p>

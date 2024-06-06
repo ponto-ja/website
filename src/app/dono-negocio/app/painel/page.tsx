@@ -8,14 +8,14 @@ export default function BusinessOwnerPanelPage() {
   return (
     <div className="w-full">
       {/* <FirstAccessFallback /> */}
-      <div className="w-full flex items-center justify-between border-b pb-4">
-        <h2 className="font-inter font-bold text-[26px] text-gray-700">
+      <div className="w-full flex items-center justify-between border-b pb-4 max-[600px]:flex-col max-[600px]:items-start max-[600px]:gap-2">
+        <h2 className="font-inter font-bold text-[26px] text-gray-700 max-[600px]:text-[24px]">
           Meu Programa de Fidelidade
         </h2>
         <ScoreRegisterModal />
       </div>
 
-      <div className="w-full grid grid-cols-4 gap-4 mt-4">
+      <div className="max-w-[1088px] w-full overflow-auto flex items-center gap-4 my-4 max-[600px]:my-2 max-[600px]:gap-2">
         <FidelityProgramCardInfo
           title="Participantes"
           icon={Users}
@@ -42,7 +42,7 @@ export default function BusinessOwnerPanelPage() {
         />
       </div>
 
-      <div className="w-full border rounded p-5 mt-4">
+      <div className="w-full border rounded p-5">
         <div className="w-full flex items-center gap-2">
           <NotebookPen color="#374151" />
           <p className="font-inter font-semibold text-[18px] text-gray-700">

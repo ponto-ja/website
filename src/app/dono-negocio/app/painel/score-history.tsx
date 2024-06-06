@@ -10,7 +10,7 @@ export const ScoreHistory = () => {
           <p className="font-inter font-normal text-sm text-gray-600">(99) 99999-9999</p>
         </div>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 max-[500px]:flex-col max-[500px]:items-end max-[500px]:gap-1">
         <p className="font-inter font-medium text-sm text-green-600 bg-green-200 py-1 px-[6px] rounded">
           +100 pontos
         </p>

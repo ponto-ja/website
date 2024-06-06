@@ -8,7 +8,7 @@ export const SideNavigation = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="max-w-[300px] w-full flex flex-col mt-4 gap-[6px]">
+    <nav className="min-w-[280px] max-w-[280px] w-full flex flex-col mt-4 gap-[6px] max-[1000px]:hidden">
       <Navigation
         title="Painel"
         href="/dono-negocio/app/painel"
