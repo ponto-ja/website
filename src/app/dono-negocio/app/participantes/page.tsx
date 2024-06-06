@@ -10,8 +10,8 @@ export default function ParticipantsPage() {
       </div>
 
       <div className="w-full border rounded p-5 mt-4">
-        <div className="w-full flex items-end justify-between">
-          <p className="font-inter font-semibold text-[18px] text-gray-700">
+        <div className="w-full flex items-end justify-between max-[700px]:flex-col max-[700px]:items-start max-[700px]:gap-2">
+          <p className="font-inter font-semibold text-[22px] text-gray-700 max-[700px]:text-[20px]">
             Participantes cadastrados
           </p>
           <div className="relative max-w-[320px] w-full">
