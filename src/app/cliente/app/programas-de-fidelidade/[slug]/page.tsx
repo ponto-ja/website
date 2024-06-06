@@ -16,18 +16,21 @@ export default function FidelityProgramPage() {
           icon={CircleDollarSign}
           value="120"
           description="Seu total de pontos no programa"
+          className="min-w-[300px]"
         />
         <FidelityProgramCardInfo
           title="Taxa de pontuação"
           icon={HandCoins}
           value="R$ 10,00"
           description="RS 10,00 em compra = +1 ponto"
+          className="min-w-[300px]"
         />
         <FidelityProgramCardInfo
           title="Recompensas"
           icon={Gift}
           value="1"
           description="Opções de recompensas"
+          className="min-w-[300px]"
         />
       </div>
 

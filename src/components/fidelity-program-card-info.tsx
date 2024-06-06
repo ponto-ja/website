@@ -1,10 +1,12 @@
-import { ComponentType, FC } from 'react';
+import { ComponentProps, ComponentType, FC } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 type FidelityProgramCardInfoProps = {
   title: string;
   icon: ComponentType<Record<string, unknown>>;
   value: string;
   description: string;
+  className?: ComponentProps<'div'>['className'];
 };
 
 export const FidelityProgramCardInfo: FC<FidelityProgramCardInfoProps> = ({
@@ -12,9 +14,10 @@ export const FidelityProgramCardInfo: FC<FidelityProgramCardInfoProps> = ({
   icon: Icon,
   value,
   description,
+  className,
 }) => {
   return (
-    <div className="rounded border min-w-[300px] w-full p-5">
+    <div className={twMerge('rounded border w-full p-5', className)}>
       <div className="w-full flex items-center justify-between">
         <p className="font-inter font-medium text-base text-gray-700">{title}</p>
         <Icon color="#374151" strokeWidth={1.8} />

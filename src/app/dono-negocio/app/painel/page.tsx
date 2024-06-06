@@ -21,24 +21,28 @@ export default function BusinessOwnerPanelPage() {
           icon={Users}
           value="42"
           description="Clientes participantes"
+          className="min-w-[260px]"
         />
         <FidelityProgramCardInfo
           title="Recompensas"
           icon={Gift}
           value="1"
           description="Opções de recompensas"
+          className="min-w-[260px]"
         />
         <FidelityProgramCardInfo
           title="Taxa de pontuação"
           icon={HandCoins}
           value="R$ 10,00"
           description="RS 10,00 em compra = +1 ponto"
+          className="min-w-[260px]"
         />
         <FidelityProgramCardInfo
           title="Dias ativos"
           icon={CalendarClock}
           value="999"
           description="Criado em 22/01/2024"
+          className="min-w-[260px]"
         />
       </div>
 
