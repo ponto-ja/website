@@ -9,6 +9,9 @@ export const Reward = () => {
       <p className="font-inter font-normal text-sm text-gray-500 mt-2">
         Pontuação necessária: 100
       </p>
+      <p className="font-inter font-normal text-sm text-gray-500 mt-1">
+        Breve descrição sobre a recompensa ...
+      </p>
       <div className="w-full flex items-center justify-end gap-6 mt-2">
         <button>
           <Trash strokeWidth={2} color="#ef4444" size={22.5} />

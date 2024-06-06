@@ -5,7 +5,7 @@ import { Reward } from './reward';
 export default function CreateFidelityProgramPage() {
   return (
     <div className="pb-6">
-      <h2 className="font-inter font-bold text-2xl text-gray-700">
+      <h2 className="font-inter font-bold text-2xl text-gray-700 max-[600px]:text-[22px]">
         Cadastrar programa de fidelidade
       </h2>
       <p className="font-inter font-normal text-base text-gray-600">
