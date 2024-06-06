@@ -26,20 +26,20 @@ export const ParticipantInfoModal = () => {
           <DialogTitle>Dados do participante</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-4 mt-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <UserRound color="#374151" strokeWidth={1.5} size={22} />
-            <p className="font-inter font-normal text-sm text-gray-700">John Doe</p>
+            <UserRound color="#374151" strokeWidth={1.7} size={22} />
+            <p className="font-inter font-medium text-sm text-gray-700">John Doe</p>
           </div>
           <div className="flex items-center gap-2">
-            <Phone color="#374151" strokeWidth={1.5} size={21} />
-            <p className="font-inter font-normal text-sm text-gray-700">
+            <Phone color="#374151" strokeWidth={1.7} size={21} />
+            <p className="font-inter font-medium text-sm text-gray-700">
               (99) 99999-9999
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <CalendarClock color="#374151" strokeWidth={1.5} size={22} />
-            <p className="font-inter font-normal text-sm text-gray-700">04/05/2024</p>
+            <CalendarClock color="#374151" strokeWidth={1.7} size={22} />
+            <p className="font-inter font-medium text-sm text-gray-700">04/05/2024</p>
           </div>
         </div>
 
@@ -63,12 +63,14 @@ export const ParticipantInfoModal = () => {
           </div>
         </div>
 
-        {/* <div className="w-full bg-red-200 p-[6px] rounded flex items-center gap-2 border-[1px] border-red-500">
-          <CircleAlert strokeWidth={2} color="#ef4444" size={20} />
+        <div className="w-full bg-red-200 p-[6px] rounded flex items-center gap-2 border-[1px] border-red-500">
+          <span>
+            <CircleAlert strokeWidth={2} color="#ef4444" size={20} />
+          </span>
           <p className="font-inter font-medium text-sm text-red-500">
             Saldo insuficiente para fazer a troca por alguma recompensa.
           </p>
-        </div> */}
+        </div>
 
         <div className="w-full flex items-center justify-between">
           <Button
