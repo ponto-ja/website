@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ComponentProps, FC } from 'react';
-import { NotebookPen, Headset, LogOut } from 'lucide-react';
+import { NotebookPen, Headset, LogOut, Menu } from 'lucide-react';
 import {
   Menubar,
   MenubarContent,
@@ -49,7 +49,7 @@ export const Header: FC<HeaderProps> = ({
         <h1 className="absolute top-0 opacity-0">Ponto Já</h1>
       </Link>
 
-      <Menubar className="border-[2px] border-violet-900 bg-violet-200 rounded-full w-11 h-11 flex items-center justify-center">
+      {/* <Menubar className="border-[2px] border-violet-900 bg-violet-200 rounded-full w-11 h-11 flex items-center justify-center">
         <MenubarMenu>
           <MenubarTrigger className="text-gray-700 font-semibold">TS</MenubarTrigger>
           <MenubarContent className="border p-1 mr-5">
@@ -68,21 +68,40 @@ export const Header: FC<HeaderProps> = ({
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
-      </Menubar>
+      </Menubar> */}
 
       {showButtons && (
-        <div className="flex items-center gap-8">
-          <Link
-            href={accessAccountLink}
-            className="font-inter font-medium text-sm text-gray-700">
-            Acessar conta
-          </Link>
-          <Link
-            href={createAccountLink}
-            className="bg-violet-900 text-white font-inter font-normal text-sm rounded-md py-[6px] px-3 hover:opacity-80 transition-opacity duration-300">
-            Criar conta grátis
-          </Link>
-        </div>
+        <>
+          <div className="flex items-center gap-8 max-[450px]:hidden">
+            <Link
+              href={accessAccountLink}
+              className="font-inter font-medium text-sm text-gray-700">
+              Acessar conta
+            </Link>
+            <Link
+              href={createAccountLink}
+              className="bg-violet-900 text-white font-inter font-normal text-sm rounded-md py-[6px] px-3 hover:opacity-80 transition-opacity duration-300">
+              Criar conta grátis
+            </Link>
+          </div>
+          <div className="hidden max-[450px]:block">
+            <Menubar>
+              <MenubarMenu>
+                <MenubarTrigger className="text-gray-700 font-semibold">
+                  <Menu color="#374151" size={26} />
+                </MenubarTrigger>
+                <MenubarContent className="border p-1 mr-5 -mt-2">
+                  <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+                    <Link href={accessAccountLink}>Acessar conta</Link>
+                  </MenubarItem>
+                  <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+                    <Link href={createAccountLink}>Criar conta grátis</Link>
+                  </MenubarItem>
+                </MenubarContent>
+              </MenubarMenu>
+            </Menubar>
+          </div>
+        </>
       )}
     </header>
   );

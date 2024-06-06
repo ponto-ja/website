@@ -3,9 +3,9 @@ import { Button } from '@/components/button';
 
 export default function SignUpPage() {
   return (
-    <main className="w-full flex flex-col items-center">
+    <main className="w-full flex flex-col items-center max-[400px]:px-3 max-[400px]:my-[30px]">
       <div>
-        <h2 className="font-inter font-semibold text-2xl text-gray-800 text-center">
+        <h2 className="font-inter font-semibold text-2xl text-gray-800 text-center max-[400px]:text-[20px]">
           Criar Conta
         </h2>
         <p className="font-inter font-normal text-sm text-gray-600 text-center">
