@@ -6,11 +6,11 @@ import { ScoreHistory } from './score-history';
 export default function FidelityProgramPage() {
   return (
     <div className="w-full mb-4">
-      <h2 className="font-inter font-bold text-[26px] text-gray-700">
+      <h2 className="font-inter font-bold text-[26px] text-gray-700 max-[600px]:text-[22px]">
         Programa da Farmácia
       </h2>
 
-      <div className="w-full flex items-center gap-4 flex-wrap mt-4">
+      <div className="max-w-[932px] w-full overflow-auto flex items-center gap-4 mt-4">
         <FidelityProgramCardInfo
           title="Total de pontos"
           icon={CircleDollarSign}

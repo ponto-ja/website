@@ -14,7 +14,7 @@ export const FidelityProgramCardInfo: FC<FidelityProgramCardInfoProps> = ({
   description,
 }) => {
   return (
-    <div className="rounded border max-w-[300px] w-full p-5 min-w-[260px]">
+    <div className="rounded border min-w-[300px] w-full p-5">
       <div className="w-full flex items-center justify-between">
         <p className="font-inter font-medium text-base text-gray-700">{title}</p>
         <Icon color="#374151" strokeWidth={1.8} />
