@@ -1,3 +1,4 @@
+import { Toaster } from '@/components/ui/toast/toaster';
 import './globals.css';
 
 import { Metadata } from 'next';
@@ -21,7 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" className={`${inter.variable} antialiased`}>
-      <body className="w-full h-screen">{children}</body>
+      <body className="w-full h-screen">
+        <Toaster />
+        {children}
+      </body>
     </html>
   );
 }

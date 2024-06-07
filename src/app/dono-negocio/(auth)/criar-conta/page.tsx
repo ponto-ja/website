@@ -1,7 +1,69 @@
-import Link from 'next/link';
-import { Button } from '@/components/button';
+'use client';
 
-export default function SignUpPage() {
+import Link from 'next/link';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { ThreeDots } from 'react-loader-spinner';
+import { Button } from '@/components/button';
+import { InputField } from '@/components/input-field';
+import { registerAccountSchema, RegisterAccountData } from './register-account-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useBusinessOwner } from '@/hooks/use-business-owner';
+import { useToast } from '@/components/ui/toast/use-toast';
+
+export default function RegisterAccountPage() {
+  const {
+    register,
+    handleSubmit,
+    setError,
+    clearErrors,
+    reset,
+    formState: { errors },
+  } = useForm<RegisterAccountData>({
+    resolver: zodResolver(registerAccountSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+    },
+  });
+  const { toast } = useToast();
+  const { register: registerBusinessOwner, isLoadingRegister } = useBusinessOwner();
+
+  const handleRegisterBusinessOwnerAccount: SubmitHandler<RegisterAccountData> = async ({
+    firstName,
+    lastName,
+    email,
+  }) => {
+    clearErrors('root');
+
+    const { data, status } = await registerBusinessOwner({ firstName, lastName, email });
+
+    switch (status) {
+      case 201: {
+        //TODO: call signIn flow
+        //TODO: set data on global state
+        reset();
+        break;
+      }
+
+      case 409: {
+        setError('email', { message: 'E-mail já cadastrado' });
+        break;
+      }
+
+      case 500: {
+        toast({
+          title: 'Ops! Erro inesperado :(',
+          description: 'Houve um erro na criação da sua conta, tente novamente.',
+          variant: 'destructive',
+          titleClassName: 'text-white',
+          descriptionClassName: 'text-white',
+        });
+        break;
+      }
+    }
+  };
+
   return (
     <main className="w-full flex flex-col items-center max-[400px]:px-3 max-[400px]:my-[30px]">
       <div>
@@ -13,42 +75,49 @@ export default function SignUpPage() {
         </p>
       </div>
 
-      <form className="mt-10 max-w-[360px] w-full">
-        <div className="flex flex-col">
-          <label htmlFor="fistName" className="font-inter font-medium text-gray-700">
-            Nome*
-          </label>
-          <input
-            type="text"
-            id="fistName"
-            placeholder="Digite seu nome"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
-          />
-        </div>
-        <div className="flex flex-col my-3">
-          <label htmlFor="lastName" className="font-inter font-medium text-gray-700">
-            Sobrenome*
-          </label>
-          <input
-            type="text"
-            id="lastName"
-            placeholder="Digite seu sobrenome"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="email" className="font-inter font-medium text-gray-700">
-            E-mail*
-          </label>
-          <input
-            type="email"
-            id="email"
-            placeholder="Digite seu e-mail"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
-          />
-        </div>
-        <Button className="bg-violet-900 w-full mt-4 py-2 font-inter text-sm text-white">
-          Criar conta
+      <form
+        className="mt-10 max-w-[360px] w-full"
+        onSubmit={handleSubmit(handleRegisterBusinessOwnerAccount)}>
+        <InputField
+          type="text"
+          placeholder="Digite seu nome"
+          label="Nome"
+          required={true}
+          error={errors.firstName?.message}
+          {...register('firstName')}
+        />
+        <InputField
+          type="text"
+          placeholder="Digite seu sobrenome"
+          label="Sobrenome"
+          required={true}
+          rootClassName="my-3"
+          error={errors.lastName?.message}
+          {...register('lastName')}
+        />
+        <InputField
+          type="email"
+          placeholder="Digite seu e-mail"
+          label="E-mail"
+          required={true}
+          error={errors.email?.message}
+          {...register('email')}
+        />
+        <Button
+          disabled={isLoadingRegister}
+          className="bg-violet-900 w-full mt-4 py-2 font-inter text-sm text-white flex justify-center">
+          {isLoadingRegister ? (
+            <ThreeDots
+              height="20"
+              width="40"
+              radius="9"
+              color="#fafafa"
+              ariaLabel="three-dots-loading"
+              visible={true}
+            />
+          ) : (
+            'Criar conta'
+          )}
         </Button>
         <p className="font-inter font-normal text-sm text-gray-600 text-center mt-4">
           Já possui uma conta?{' '}

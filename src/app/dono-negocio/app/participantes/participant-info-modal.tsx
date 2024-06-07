@@ -81,7 +81,7 @@ export const ParticipantInfoModal = () => {
           </Button>
           <Button
             disabled
-            className="bg-violet-900 px-3 py-2 font-inter font-normal text-sm text-white flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            className="bg-violet-900 px-3 py-2 font-inter font-normal text-sm text-white flex items-center gap-2">
             <HandCoins strokeWidth={2} color="#FFFFFF" size={20} />
             Trocar pontos
           </Button>

@@ -49,7 +49,7 @@ export const Header: FC<HeaderProps> = ({
         <h1 className="absolute top-0 opacity-0">Ponto Já</h1>
       </Link>
 
-      <Menubar className="border-[2px] border-violet-900 bg-violet-200 rounded-full w-11 h-11 flex items-center justify-center">
+      {/* <Menubar className="border-[2px] border-violet-900 bg-violet-200 rounded-full w-11 h-11 flex items-center justify-center">
         <MenubarMenu>
           <MenubarTrigger className="text-gray-700 font-semibold">TS</MenubarTrigger>
           <MenubarContent className="border p-1 mr-5">
@@ -93,7 +93,7 @@ export const Header: FC<HeaderProps> = ({
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
-      </Menubar>
+      </Menubar> */}
 
       {showButtons && (
         <>
