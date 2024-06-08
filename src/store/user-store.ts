@@ -36,5 +36,8 @@ const userStore = (set: StoreApi<UserStoreProps>['setState']): UserStoreProps =>
 });
 
 export const useUserStore = create(
-  persist(userStore, { name: '@pontoja:app', storage: createJSONStorage(() => storage) }),
+  persist(userStore, {
+    name: '@pontoja:app.user',
+    storage: createJSONStorage(() => storage),
+  }),
 );

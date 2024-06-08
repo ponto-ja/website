@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export const ProtectedRoute: FC<PropsWithChildren<unknown>> = ({ children }) => {
-  const rowData = cookies().get('@pontoja:app')?.value;
+  const rowData = cookies().get('@pontoja:app.user')?.value;
 
   if (!rowData) return redirect('/dono-negocio/entrar');
 
