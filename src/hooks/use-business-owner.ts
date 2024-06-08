@@ -25,9 +25,19 @@ type AuthenticateBusinessOwnerAccountOutput = {
   code: 'SUCCESS' | 'INVALID_CREDENTIAL' | 'UNEXPECTED_ERROR';
 };
 
+type GetByIdOutput = {
+  data: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  } | null;
+  code: 'SUCCESS' | 'INVALID_ID' | 'UNEXPECTED_ERROR';
+};
+
 export const useBusinessOwner = () => {
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
   const [isLoadingAuthenticate, setIsLoadingAuthenticate] = useState(false);
+  const [isLoadingGetById, setIsLoadingGetById] = useState(false);
 
   const register = async ({
     firstName,
@@ -114,10 +124,43 @@ export const useBusinessOwner = () => {
     }
   };
 
+  const getById = async (id: string): Promise<GetByIdOutput> => {
+    try {
+      setIsLoadingGetById(true);
+
+      const { data } = await supabase.from('business_owners').select('*').eq('id', id);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'INVALID_ID',
+        };
+      }
+
+      return {
+        data: {
+          id: data[0].id,
+          firstName: data[0].first_name,
+          lastName: data[0].last_name,
+        },
+        code: 'SUCCESS',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingGetById(false);
+    }
+  };
+
   return {
     isLoadingRegister,
     isLoadingAuthenticate,
+    isLoadingGetById,
     register,
     authenticate,
+    getById,
   };
 };
