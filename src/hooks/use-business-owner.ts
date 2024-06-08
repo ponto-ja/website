@@ -10,16 +10,24 @@ type RegisterBusinessOwnerInput = {
 };
 
 type RegisterBusinessOwnerOutput = {
+  code: 'CREATED' | 'EMAIL_ALREADY_EXISTS' | 'UNEXPECTED_ERROR';
+};
+
+type AuthenticateBusinessOwnerAccountInput = {
+  email: string;
+};
+
+type AuthenticateBusinessOwnerAccountOutput = {
   data: {
     id: string;
-    email: string;
     role: keyof typeof Role;
   } | null;
-  status: 201 | 409 | 500;
+  code: 'SUCCESS' | 'INVALID_CREDENTIAL' | 'UNEXPECTED_ERROR';
 };
 
 export const useBusinessOwner = () => {
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
+  const [isLoadingAuthenticate, setIsLoadingAuthenticate] = useState(false);
 
   const register = async ({
     firstName,
@@ -38,20 +46,54 @@ export const useBusinessOwner = () => {
 
       if (userExists) {
         return {
-          data: null,
-          status: 409,
+          code: 'EMAIL_ALREADY_EXISTS',
         };
       }
 
       const { data } = await supabase
         .from('business_owners')
-        .insert({ id: cuid(), first_name: firstName, last_name: lastName, email })
+        .insert({
+          id: cuid(),
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          has_active_subscription: true,
+        })
         .select();
 
       if (!data?.[0]) {
         return {
+          code: 'UNEXPECTED_ERROR',
+        };
+      }
+
+      return {
+        code: 'CREATED',
+      };
+    } catch (error) {
+      return {
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingRegister(false);
+    }
+  };
+
+  const authenticate = async ({
+    email,
+  }: AuthenticateBusinessOwnerAccountInput): Promise<AuthenticateBusinessOwnerAccountOutput> => {
+    try {
+      setIsLoadingAuthenticate(true);
+
+      const { data } = await supabase
+        .from('business_owners')
+        .select('*')
+        .eq('email', email);
+
+      if (!data?.[0]) {
+        return {
           data: null,
-          status: 500,
+          code: 'INVALID_CREDENTIAL',
         };
       }
 
@@ -60,20 +102,22 @@ export const useBusinessOwner = () => {
           id: data[0].id,
           role: 'BUSINESS_OWNER',
         },
-        status: 201,
+        code: 'SUCCESS',
       };
-    } catch (error) {
+    } catch {
       return {
         data: null,
-        status: 500,
+        code: 'UNEXPECTED_ERROR',
       };
     } finally {
-      setIsLoadingRegister(false);
+      setIsLoadingAuthenticate(false);
     }
   };
 
   return {
-    register,
     isLoadingRegister,
+    isLoadingAuthenticate,
+    register,
+    authenticate,
   };
 };

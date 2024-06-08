@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { ThreeDots } from 'react-loader-spinner';
 import { Button } from '@/components/button';
@@ -9,8 +10,10 @@ import { registerAccountSchema, RegisterAccountData } from './register-account-s
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useBusinessOwner } from '@/hooks/use-business-owner';
 import { useToast } from '@/components/ui/toast/use-toast';
+import { useUserStore } from '@/store/user-store';
 
 export default function RegisterAccountPage() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -27,7 +30,15 @@ export default function RegisterAccountPage() {
     },
   });
   const { toast } = useToast();
-  const { register: registerBusinessOwner, isLoadingRegister } = useBusinessOwner();
+  const {
+    register: registerBusinessOwner,
+    isLoadingRegister,
+    authenticate,
+    isLoadingAuthenticate,
+  } = useBusinessOwner();
+  const { setUser } = useUserStore();
+
+  const isLoading = isLoadingRegister || isLoadingAuthenticate;
 
   const handleRegisterBusinessOwnerAccount: SubmitHandler<RegisterAccountData> = async ({
     firstName,
@@ -36,22 +47,31 @@ export default function RegisterAccountPage() {
   }) => {
     clearErrors('root');
 
-    const { data, status } = await registerBusinessOwner({ firstName, lastName, email });
+    const { code } = await registerBusinessOwner({ firstName, lastName, email });
 
-    switch (status) {
-      case 201: {
-        //TODO: call signIn flow
-        //TODO: set data on global state
+    switch (code) {
+      case 'CREATED': {
+        const { data: user } = await authenticate({ email });
+
+        setUser({ id: user!.id, role: user!.role });
+
+        toast({
+          title: '✅ Credencial válida!',
+          description: 'Seu acesso foi autorizado com sucesso',
+        });
+
         reset();
+
+        router.push('/dono-negocio/app');
         break;
       }
 
-      case 409: {
+      case 'EMAIL_ALREADY_EXISTS': {
         setError('email', { message: 'E-mail já cadastrado' });
         break;
       }
 
-      case 500: {
+      case 'UNEXPECTED_ERROR': {
         toast({
           title: 'Ops! Erro inesperado :(',
           description: 'Houve um erro na criação da sua conta, tente novamente.',
@@ -104,9 +124,9 @@ export default function RegisterAccountPage() {
           {...register('email')}
         />
         <Button
-          disabled={isLoadingRegister}
+          disabled={isLoading}
           className="bg-violet-900 w-full mt-4 py-2 font-inter text-sm text-white flex justify-center">
-          {isLoadingRegister ? (
+          {isLoading ? (
             <ThreeDots
               height="20"
               width="40"
