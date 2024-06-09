@@ -1,7 +1,7 @@
 import { FidelityProgramCardInfo } from '@/components/fidelity-program-card-info';
-import { RewardAvailable } from '@/components/reward-available';
 import { CircleDollarSign, Gift, HandCoins } from 'lucide-react';
 import { ScoreHistory } from './score-history';
+import { Reward } from '@/components/reward';
 
 export default function FidelityProgramPage() {
   return (
@@ -42,8 +42,20 @@ export default function FidelityProgramPage() {
           Recompensas que pode ganhar dentro do programa
         </p>
         <div className="mt-2 flex items-center flex-wrap gap-2">
-          <RewardAvailable className="max-w-[400px]" />
-          <RewardAvailable className="max-w-[400px]" />
+          <Reward.Root className="max-w-[400px]">
+            <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
+            <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
+            <Reward.Description>
+              Breve descrição sobre a recompensa ...
+            </Reward.Description>
+          </Reward.Root>
+          <Reward.Root className="max-w-[400px]">
+            <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
+            <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
+            <Reward.Description>
+              Breve descrição sobre a recompensa ...
+            </Reward.Description>
+          </Reward.Root>
         </div>
       </div>
 
@@ -55,7 +67,13 @@ export default function FidelityProgramPage() {
           Recompensas que você já ganhou dentro do programa
         </p>
         <div className="mt-2 flex items-center flex-wrap gap-2">
-          <RewardAvailable className="max-w-[400px]" />
+          <Reward.Root className="max-w-[400px]">
+            <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
+            <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
+            <Reward.Description>
+              Breve descrição sobre a recompensa ...
+            </Reward.Description>
+          </Reward.Root>
         </div>
       </div>
 

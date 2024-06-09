@@ -1,8 +1,133 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ThreeDots } from 'react-loader-spinner';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/button';
-import { NewRewardModal } from './new-reward-modal';
-import { Reward } from './reward';
+import { RewardModal } from './reward-modal';
+import { Reward } from '../../../../../components/reward';
+import { InputField } from '@/components/input-field';
+import {
+  RegisterFidelityProgramData,
+  registerFidelityProgramSchema,
+} from './register-fidelity-program-schema';
+import { useToast } from '@/components/ui/toast/use-toast';
+import { useFidelityProgram } from '@/hooks/use-fidelity-program';
+import { useReward } from '@/hooks/use-reward';
+import { useUserStore } from '@/store/user-store';
+import { mask } from '@/helpers/mask';
+
+export type RewardData = {
+  id: string;
+  name: string;
+  scoreNeeded: number;
+  description?: string;
+};
 
 export default function CreateFidelityProgramPage() {
+  const router = useRouter();
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors },
+  } = useForm<RegisterFidelityProgramData>({
+    resolver: zodResolver(registerFidelityProgramSchema),
+    defaultValues: {
+      name: '',
+      scoreRate: '',
+    },
+  });
+  const { toast } = useToast();
+  const { user } = useUserStore();
+  const {
+    register: registerFidelityProgram,
+    isLoadingRegister: isLoadingRegisterFidelityProgram,
+  } = useFidelityProgram();
+  const { register: registerReward } = useReward();
+  const [rewards, setRewards] = useState<RewardData[]>([]);
+  const [isRegisteringRewards, setIsRegisteringRewards] = useState(false);
+
+  const scoreRateValue = watch('scoreRate');
+
+  const isLoading = isLoadingRegisterFidelityProgram || isRegisteringRewards;
+
+  const handleRegisterFidelityProgram: SubmitHandler<
+    RegisterFidelityProgramData
+  > = async ({ name, scoreRate }) => {
+    if (rewards.length === 0) {
+      toast({
+        title: 'Adicione pelo menos 1 recompensa',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+      });
+      return;
+    }
+
+    const formattedScoreRate = Number(scoreRate.replace(',', '.'));
+
+    const { data, code } = await registerFidelityProgram({
+      name,
+      scoreRate: formattedScoreRate,
+      businessOwnerId: user.id!,
+    });
+
+    switch (code) {
+      case 'CREATED': {
+        const rewardsToSave = rewards.map((reward) =>
+          registerReward({
+            fidelityProgramId: data!.id,
+            name: reward.name,
+            scoreNeeded: reward.scoreNeeded,
+            description: reward.description || null,
+          }),
+        );
+
+        setIsRegisteringRewards(true);
+
+        await Promise.all(rewardsToSave);
+
+        setIsRegisteringRewards(false);
+
+        toast({
+          title: '✅ Programa de Fidelidade',
+          description: 'Seu programa de fidelidade foi criado com sucesso.',
+        });
+
+        router.replace('/dono-negocio/app/painel');
+        break;
+      }
+
+      case 'UNEXPECTED_ERROR': {
+        toast({
+          title: 'Ops! Erro inesperado :(',
+          description: 'Houve um erro no carregamento dos dados, recarregue a página.',
+          variant: 'destructive',
+          titleClassName: 'text-white',
+          descriptionClassName: 'text-white',
+        });
+        break;
+      }
+    }
+  };
+
+  const handleRemoveReward = (rewardId: string) => {
+    const data = rewards.filter((reward) => reward.id !== rewardId);
+    setRewards(data);
+  };
+
+  const handleUpdateReward = (reward: RewardData) => {
+    const data = rewards.map((item) => {
+      if (item.id === reward.id) return reward;
+      return item;
+    });
+    setRewards(data);
+  };
+
   return (
     <div className="pb-6">
       <h2 className="font-inter font-bold text-2xl text-gray-700 max-[600px]:text-[22px]">
@@ -12,36 +137,41 @@ export default function CreateFidelityProgramPage() {
         Preencha as informações abaixo para cadastrar seu programa de fidelidade.
       </p>
 
-      <form className="mt-10 max-w-[600px] w-full">
-        <div className="flex flex-col">
-          <label
-            htmlFor="fidelityProgramName"
-            className="font-inter font-medium text-gray-700">
-            Nome do programa de fidelidade*
-          </label>
-          <input
-            type="text"
-            id="fidelityProgramName"
-            autoFocus={true}
-            placeholder="Digite o nome do programa"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
-          />
-        </div>
-        <div className="flex flex-col mt-6">
-          <label htmlFor="scoreRate" className="font-inter font-medium text-gray-700">
-            Taxa de pontos*
-          </label>
-          <input
-            type="text"
-            id="scoreRate"
-            placeholder="Digite a taxa de pontos"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
-          />
-          <p className="font-inter font-normal text-sm text-gray-700">
-            A cada <span className="font-semibold">R$ 0,00</span> em compras, o
-            participante ganha +1 ponto
-          </p>
-        </div>
+      <form
+        className="mt-10 max-w-[600px] w-full"
+        onSubmit={handleSubmit(handleRegisterFidelityProgram)}>
+        <InputField
+          type="text"
+          placeholder="Digite o nome do programa"
+          label="Nome do programa de fidelidade"
+          required={true}
+          error={errors.name?.message}
+          {...register('name')}
+        />
+        <Controller
+          control={control}
+          name="scoreRate"
+          render={({ field: { value, onChange } }) => (
+            <div className="mt-6">
+              <InputField
+                type="text"
+                placeholder="Digite a taxa de pontos"
+                label="Taxa de pontos"
+                required={true}
+                error={errors.scoreRate?.message}
+                value={value}
+                onChange={({ target }) => onChange(mask.currency(target.value))}
+              />
+              <p className="font-inter font-normal text-sm text-gray-700 mt-[2px]">
+                A cada{' '}
+                <span className="font-semibold">
+                  R$ {scoreRateValue === '' ? '0,00' : scoreRateValue}
+                </span>{' '}
+                em compras, o participante ganha +1 ponto
+              </p>
+            </div>
+          )}
+        />
 
         <div className="flex flex-col mt-6">
           <label className="font-inter font-medium text-gray-700">Recompensas*</label>
@@ -49,15 +179,62 @@ export default function CreateFidelityProgramPage() {
             Adicione as recompensas do seu programa de fidelidade
           </p>
           <div className="my-2 flex flex-col gap-2">
-            <Reward />
+            {rewards.map((reward) => (
+              <Reward.Root key={reward.id}>
+                <Reward.Name>{reward.name}</Reward.Name>
+                <Reward.ScoreRate>
+                  Pontuação necessária: {reward.scoreNeeded}
+                </Reward.ScoreRate>
+                {!!reward.description && (
+                  <Reward.Description>{reward.description}</Reward.Description>
+                )}
+                <Reward.Actions.Wrap>
+                  <Reward.Actions.Delete
+                    type="button"
+                    onClick={() => handleRemoveReward(reward.id)}
+                  />
+                  <RewardModal
+                    initialRewardState={{
+                      id: reward.id,
+                      name: reward.name,
+                      scoreNeeded: String(reward.scoreNeeded),
+                      description: reward.description ?? '',
+                    }}
+                    onSaveReward={(data) => handleUpdateReward(data)}>
+                    <Reward.Actions.Update type="button" />
+                  </RewardModal>
+                </Reward.Actions.Wrap>
+              </Reward.Root>
+            ))}
           </div>
           <div className="w-full flex justify-center mt-2">
-            <NewRewardModal />
+            <RewardModal onSaveReward={(data) => setRewards((state) => [...state, data])}>
+              <Button
+                type="button"
+                className="bg-violet-200 font-inter font-medium text-sm text-gray-500 flex items-center gap-1">
+                <Plus color="#6b7280" size={18} strokeWidth={3} />
+                Nova recompensa
+              </Button>
+            </RewardModal>
           </div>
         </div>
 
-        <Button className="bg-violet-900 font-inter font-normal text-sm text-white mt-10 px-3 py-2">
-          Cadastrar programa de fidelidade
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="max-w-[260px] w-full bg-violet-900 font-inter font-normal text-sm text-white mt-10 px-3 py-2 flex justify-center">
+          {isLoading ? (
+            <ThreeDots
+              height="20"
+              width="40"
+              radius="9"
+              color="#fafafa"
+              ariaLabel="three-dots-loading"
+              visible={true}
+            />
+          ) : (
+            'Cadastrar programa de fidelidade'
+          )}
         </Button>
       </form>
     </div>

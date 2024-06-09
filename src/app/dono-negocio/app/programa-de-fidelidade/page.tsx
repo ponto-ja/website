@@ -1,9 +1,9 @@
-import { FirstAccessFallback } from '../first-access-fallback';
+import { FidelityProgramFallback } from '../fidelity-program-fallback';
 
 export default function BusinessOwnerFidelityProgramPage() {
   return (
     <>
-      <FirstAccessFallback />
+      <FidelityProgramFallback />
     </>
   );
 }

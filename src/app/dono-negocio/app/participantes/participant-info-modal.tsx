@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/button';
 import { Participant } from './participant';
-import { RewardAvailable } from '../../../../components/reward-available';
+import { Reward } from '@/components/reward';
 
 export const ParticipantInfoModal = () => {
   const [open, setOpen] = useState(false);
@@ -58,8 +58,17 @@ export const ParticipantInfoModal = () => {
             Selecione uma recompensa para trocar
           </p>
           <div className="mt-2 flex flex-col gap-2">
-            <RewardAvailable selected />
-            <RewardAvailable selected={false} />
+            <Reward.Root selected>
+              <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
+              <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
+              <Reward.Description>
+                Breve descrição sobre a recompensa ...
+              </Reward.Description>
+            </Reward.Root>
+            <Reward.Root>
+              <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
+              <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
+            </Reward.Root>
           </div>
         </div>
 
