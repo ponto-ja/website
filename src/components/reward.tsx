@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { Trash, SquarePen } from 'lucide-react';
+import { Oval } from 'react-loader-spinner';
 import { ComponentProps, FC } from 'react';
 import { twMerge } from 'tailwind-merge';
 
@@ -71,12 +72,32 @@ const RewardActionsWrap: FC<ComponentProps<'div'>> = ({
   );
 };
 
-const RewardDeleteAction: FC<ComponentProps<'button'>> = ({ className, ...props }) => {
+type RewardDeleteActionProps = ComponentProps<'button'> & {
+  isLoading?: boolean;
+};
+
+const RewardDeleteAction: FC<RewardDeleteActionProps> = ({
+  className,
+  isLoading,
+  ...props
+}) => {
   return (
     <button
       className={twMerge('disabled:opacity-50 disabled:cursor-not-allowed', className)}
       {...props}>
-      <Trash strokeWidth={2} color="#ef4444" size={22.5} />
+      {!isLoading ? (
+        <Trash strokeWidth={2} color="#ef4444" size={22.5} />
+      ) : (
+        <Oval
+          visible={true}
+          height="22.5"
+          width="22.5"
+          color="#ef4444"
+          ariaLabel="oval-loading"
+          secondaryColor="#c4b5fd"
+          strokeWidth={4}
+        />
+      )}
     </button>
   );
 };

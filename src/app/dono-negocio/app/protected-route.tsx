@@ -1,6 +1,7 @@
 import { FC, PropsWithChildren } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { UserRole } from '@/enums/user-role';
 
 export const ProtectedRoute: FC<PropsWithChildren<unknown>> = ({ children }) => {
   const rowData = cookies().get('@pontoja:app.user')?.value;
@@ -15,7 +16,7 @@ export const ProtectedRoute: FC<PropsWithChildren<unknown>> = ({ children }) => 
 
   const { id, role } = data.state.user;
 
-  if (!id || !role) redirect('/dono-negocio/entrar');
+  if (!id || !role || role !== UserRole.BUSINESS_OWNER) redirect('/dono-negocio/entrar');
 
   return <>{children}</>;
 };

@@ -63,7 +63,7 @@ export const RegisterParticipantModal = () => {
               className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
             />
           </div>
-
+          * [ VALIDAR SE DONO TEM ASSINATURA ATIVA ] *
           <div className="w-full flex items-center justify-between mt-4">
             <Button
               type="button"

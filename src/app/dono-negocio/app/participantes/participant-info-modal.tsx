@@ -77,7 +77,8 @@ export const ParticipantInfoModal = () => {
             <CircleAlert strokeWidth={2} color="#ef4444" size={20} />
           </span>
           <p className="font-inter font-medium text-sm text-red-500">
-            Saldo insuficiente para fazer a troca por alguma recompensa.
+            Saldo insuficiente para fazer a troca por alguma recompensa. * [ VALIDAR SE
+            DONO TEM ASSINATURA ATIVA ] *
           </p>
         </div>
 

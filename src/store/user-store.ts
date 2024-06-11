@@ -1,11 +1,11 @@
-import { Role } from '@/enums/role';
+import { UserRole } from '@/enums/user-role';
 import { StoreApi, create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { storage } from './storage';
 
 type User = {
   id: string | null;
-  role: keyof typeof Role | null;
+  role: keyof typeof UserRole | null;
 };
 
 type UserStoreProps = {

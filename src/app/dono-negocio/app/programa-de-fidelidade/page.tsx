@@ -1,9 +1,9 @@
-import { FidelityProgramFallback } from '../fidelity-program-fallback';
+import { FidelityProgramContent } from './fidelity-program-content';
 
 export default function BusinessOwnerFidelityProgramPage() {
   return (
-    <>
-      <FidelityProgramFallback />
-    </>
+    <div className="w-full">
+      <FidelityProgramContent />
+    </div>
   );
 }

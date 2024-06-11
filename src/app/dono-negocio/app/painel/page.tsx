@@ -1,9 +1,9 @@
-import { FidelityProgramContent } from './fidelity-program-content';
+import { PanelContent } from './panel-content';
 
 export default function BusinessOwnerPanelPage() {
   return (
     <div className="w-full">
-      <FidelityProgramContent />
+      <PanelContent />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ThreeDots } from 'react-loader-spinner';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/button';
-import { RewardModal } from './reward-modal';
+import { RewardModal } from '../../../../../components/reward-modal';
 import { Reward } from '../../../../../components/reward';
 import { InputField } from '@/components/input-field';
 import {
@@ -19,13 +19,7 @@ import { useFidelityProgram } from '@/hooks/use-fidelity-program';
 import { useReward } from '@/hooks/use-reward';
 import { useUserStore } from '@/store/user-store';
 import { mask } from '@/helpers/mask';
-
-export type RewardData = {
-  id: string;
-  name: string;
-  scoreNeeded: number;
-  description?: string;
-};
+import { RewardData } from '@/@types/reward-data';
 
 export default function CreateFidelityProgramPage() {
   const router = useRouter();
@@ -61,7 +55,7 @@ export default function CreateFidelityProgramPage() {
   > = async ({ name, scoreRate }) => {
     if (rewards.length === 0) {
       toast({
-        title: 'Adicione pelo menos 1 recompensa',
+        title: 'Adicione pelo menos 1 recompensa.',
         variant: 'destructive',
         titleClassName: 'text-white',
       });
@@ -113,6 +107,10 @@ export default function CreateFidelityProgramPage() {
         break;
       }
     }
+  };
+
+  const handleAddReward = (reward: RewardData) => {
+    setRewards((state) => [...state, reward]);
   };
 
   const handleRemoveReward = (rewardId: string) => {
@@ -208,7 +206,7 @@ export default function CreateFidelityProgramPage() {
             ))}
           </div>
           <div className="w-full flex justify-center mt-2">
-            <RewardModal onSaveReward={(data) => setRewards((state) => [...state, data])}>
+            <RewardModal onSaveReward={handleAddReward}>
               <Button
                 type="button"
                 className="bg-violet-200 font-inter font-medium text-sm text-gray-500 flex items-center gap-1">

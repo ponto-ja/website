@@ -1,8 +1,9 @@
 'use client';
 
-import { FC, PropsWithChildren, useState } from 'react';
+import { FC, PropsWithChildren, useEffect, useState } from 'react';
 import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ThreeDots } from 'react-loader-spinner';
 import cuid from 'cuid';
 import {
   Dialog,
@@ -12,43 +13,49 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/button';
-import { RewardData } from './page';
-import { RegisterRewardData, registerRewardSchema } from './register-reward-schema';
+import {
+  RegisterRewardData,
+  registerRewardSchema,
+} from '../app/dono-negocio/app/programa-de-fidelidade/criar/register-reward-schema';
 import { InputField } from '@/components/input-field';
 import { mask } from '@/helpers/mask';
+import { RewardData } from '@/@types/reward-data';
 
 type RewardModalProps = {
-  onSaveReward: (data: RewardData) => void;
+  onSaveReward: (data: RewardData) => void | Promise<void>;
   initialRewardState?: {
     id: string;
     name: string;
     scoreNeeded: string;
     description: string;
   };
+  isLoading?: boolean;
 };
 
 export const RewardModal: FC<PropsWithChildren<RewardModalProps>> = ({
   children,
   onSaveReward,
   initialRewardState,
+  isLoading,
 }) => {
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     control,
     formState: { errors },
   } = useForm<RegisterRewardData>({
     resolver: zodResolver(registerRewardSchema),
     defaultValues: {
-      name: initialRewardState?.name ?? '',
-      scoreNeeded: initialRewardState?.scoreNeeded ?? '',
-      description: initialRewardState?.description ?? '',
+      name: '',
+      scoreNeeded: '',
+      description: '',
     },
   });
   const [open, setOpen] = useState(false);
 
-  const handleRegisterReward: SubmitHandler<RegisterRewardData> = ({
+  const handleRegisterReward: SubmitHandler<RegisterRewardData> = async ({
     name,
     scoreNeeded,
     description,
@@ -60,12 +67,18 @@ export const RewardModal: FC<PropsWithChildren<RewardModalProps>> = ({
       description,
     };
 
-    onSaveReward(reward);
+    await onSaveReward(reward);
 
     reset();
 
     setOpen(false);
   };
+
+  useEffect(() => {
+    setValue('name', initialRewardState?.name ?? '');
+    setValue('scoreNeeded', initialRewardState?.scoreNeeded ?? '');
+    setValue('description', initialRewardState?.description ?? '');
+  }, [initialRewardState]);
 
   return (
     <Dialog open={open} onOpenChange={(value) => setOpen(value)}>
@@ -126,8 +139,20 @@ export const RewardModal: FC<PropsWithChildren<RewardModalProps>> = ({
             </Button>
             <Button
               type="submit"
-              className="bg-violet-900 px-3 py-2 font-inter font-normal text-sm text-white">
-              Salvar recompensa
+              disabled={isLoading}
+              className="bg-violet-900 px-3 py-2 font-inter font-normal text-sm text-white min-w-[140px] flex justify-center">
+              {isLoading ? (
+                <ThreeDots
+                  height="20"
+                  width="40"
+                  radius="9"
+                  color="#fafafa"
+                  ariaLabel="three-dots-loading"
+                  visible={true}
+                />
+              ) : (
+                'Salvar recompensa'
+              )}
             </Button>
           </div>
         </form>

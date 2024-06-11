@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/infra/database/supabase/client';
 import cuid from 'cuid';
-import { Role } from '@/enums/role';
+import { UserRole } from '@/enums/user-role';
 
 type RegisterBusinessOwnerInput = {
   firstName: string;
@@ -20,7 +20,7 @@ type AuthenticateBusinessOwnerAccountInput = {
 type AuthenticateBusinessOwnerAccountOutput = {
   data: {
     id: string;
-    role: keyof typeof Role;
+    role: keyof typeof UserRole;
   } | null;
   code: 'SUCCESS' | 'INVALID_CREDENTIAL' | 'UNEXPECTED_ERROR';
 };

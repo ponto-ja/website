@@ -10,24 +10,48 @@ import { useUserStore } from '@/store/user-store';
 import { useFidelityProgram } from '@/hooks/use-fidelity-program';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { FidelityProgramFallback } from '../fidelity-program-fallback';
+import { formatScoreRate } from '@/helpers/format-score-rate';
 
-export const FidelityProgramContent = () => {
+type FidelityProgramSummaryData = {
+  id: string;
+  name: string;
+  numberOfParticipants: number;
+  numberOfRewards: number;
+  numberOfActiveDays: number;
+  scoreRate: string;
+  createdAt: string;
+};
+
+export const PanelContent = () => {
   const { toast } = useToast();
   const { user } = useUserStore();
-  const { getByBusinessOwnerId, isLoadingGetByBusinessOwnerId } = useFidelityProgram({
-    initialState: {
-      isLoadingGetByBusinessOwnerId: true,
-    },
-  });
+  const { getSummaryByBusinessOwnerId, isLoadingGetSummaryByBusinessOwnerId } =
+    useFidelityProgram({
+      initialState: {
+        isLoadingGetSummaryByBusinessOwnerId: true,
+      },
+    });
   const [showFallback, setShowFallback] = useState(false);
+  const [fidelityProgramSummary, setFidelityProgramSummary] =
+    useState<FidelityProgramSummaryData | null>(null);
 
-  const handleFetchFidelityProgram = async () => {
-    const { data, code } = await getByBusinessOwnerId(user.id!);
+  const handleFetchFidelityProgramSummary = async () => {
+    const { data, code } = await getSummaryByBusinessOwnerId(user.id!);
 
     switch (code) {
       case 'SUCCESS': {
         //TODO: save on state
-        //TODO: save fidelity program id on global state
+        setFidelityProgramSummary({
+          id: data!.id,
+          name: data!.name,
+          numberOfParticipants: data!.numberOfParticipants,
+          numberOfRewards: data!.numberOfRewards,
+          numberOfActiveDays: data!.numberOfActiveDays,
+          scoreRate: formatScoreRate(data!.scoreRate),
+          createdAt: data!.createdAt,
+        });
+
+        //TODO: save fidelity program on global state
         //TODO: call function to fetch score history
         break;
       }
@@ -52,17 +76,17 @@ export const FidelityProgramContent = () => {
 
   useEffect(() => {
     if (user.id !== null) {
-      handleFetchFidelityProgram();
+      handleFetchFidelityProgramSummary();
     }
   }, [user]);
 
   if (showFallback) return <FidelityProgramFallback />;
 
   return (
-    <PageLoading isLoading={isLoadingGetByBusinessOwnerId}>
+    <PageLoading isLoading={isLoadingGetSummaryByBusinessOwnerId}>
       <div className="w-full flex items-center justify-between border-b pb-4 max-[600px]:flex-col max-[600px]:items-start max-[600px]:gap-2">
         <h2 className="font-inter font-bold text-[26px] text-gray-700 max-[600px]:text-[24px]">
-          Meu Programa de Fidelidade
+          {fidelityProgramSummary?.name}
         </h2>
         <ScoreRegisterModal />
       </div>
@@ -71,29 +95,29 @@ export const FidelityProgramContent = () => {
         <FidelityProgramCardInfo
           title="Participantes"
           icon={Users}
-          value="42"
+          value={String(fidelityProgramSummary?.numberOfParticipants)}
           description="Clientes participantes"
           className="min-w-[260px]"
         />
         <FidelityProgramCardInfo
           title="Recompensas"
           icon={Gift}
-          value="1"
+          value={String(fidelityProgramSummary?.numberOfRewards)}
           description="Opções de recompensas"
           className="min-w-[260px]"
         />
         <FidelityProgramCardInfo
           title="Taxa de pontuação"
           icon={HandCoins}
-          value="R$ 10,00"
-          description="RS 10,00 em compra = +1 ponto"
+          value={`${fidelityProgramSummary?.scoreRate}`}
+          description={`${fidelityProgramSummary?.scoreRate} em compra = +1 ponto`}
           className="min-w-[260px]"
         />
         <FidelityProgramCardInfo
           title="Dias ativos"
           icon={CalendarClock}
-          value="999"
-          description="Criado em 22/01/2024"
+          value={String(fidelityProgramSummary?.numberOfActiveDays)}
+          description={`Criado em ${fidelityProgramSummary?.createdAt}`}
           className="min-w-[260px]"
         />
       </div>

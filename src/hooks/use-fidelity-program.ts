@@ -5,17 +5,31 @@ import cuid from 'cuid';
 
 type FidelityProgramHookProps = {
   initialState?: {
-    isLoadingGetByBusinessOwnerId?: boolean;
+    isLoadingGetSummaryByBusinessOwnerId?: boolean;
     isLoadingRegister?: boolean;
+    isLoadingGetDetailsByBusinessOwnerId?: boolean;
+    isLoadingUpdate?: boolean;
   };
 };
 
-type GetByBusinessOwnerIdOutput = {
+type GetSummaryByBusinessOwnerIdOutput = {
   data: {
+    id: string;
+    name: string;
     numberOfParticipants: number;
     numberOfRewards: number;
+    numberOfActiveDays: number;
     scoreRate: number;
-    activeDays: number;
+    createdAt: string;
+  } | null;
+  code: 'SUCCESS' | 'NOT_FIDELITY_PROGRAM_CREATED' | 'UNEXPECTED_ERROR';
+};
+
+type GetDetailsByBusinessOwnerIdOutput = {
+  data: {
+    id: string;
+    name: string;
+    scoreRate: string;
   } | null;
   code: 'SUCCESS' | 'NOT_FIDELITY_PROGRAM_CREATED' | 'UNEXPECTED_ERROR';
 };
@@ -33,19 +47,33 @@ type RegisterOutput = {
   code: 'CREATED' | 'UNEXPECTED_ERROR';
 };
 
+type UpdateInput = {
+  id: string;
+  name: string;
+  scoreRate: number;
+};
+
+type UpdateOutput = {
+  code: 'UPDATED' | 'UNEXPECTED_ERROR';
+};
+
 export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = {}) => {
-  const [isLoadingGetByBusinessOwnerId, setIsLoadingGetByBusinessOwnerId] = useState(
-    initialState?.isLoadingGetByBusinessOwnerId ?? false,
-  );
+  const [isLoadingGetSummaryByBusinessOwnerId, setIsLoadingGetSummaryByBusinessOwnerId] =
+    useState(initialState?.isLoadingGetSummaryByBusinessOwnerId ?? false);
   const [isLoadingRegister, setIsLoadingRegister] = useState(
     initialState?.isLoadingRegister ?? false,
   );
+  const [isLoadingGetDetailsByBusinessOwnerId, setIsLoadingGetDetailsByBusinessOwnerId] =
+    useState(initialState?.isLoadingGetDetailsByBusinessOwnerId ?? false);
+  const [isLoadingUpdate, setIsLoadingUpdate] = useState(
+    initialState?.isLoadingUpdate ?? false,
+  );
 
-  const getByBusinessOwnerId = async (
+  const getSummaryByBusinessOwnerId = async (
     businessOwnerId: string,
-  ): Promise<GetByBusinessOwnerIdOutput> => {
+  ): Promise<GetSummaryByBusinessOwnerIdOutput> => {
     try {
-      setIsLoadingGetByBusinessOwnerId(true);
+      setIsLoadingGetSummaryByBusinessOwnerId(true);
 
       const { data } = await supabase
         .from('fidelity_programs')
@@ -64,9 +92,10 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
       const { count: numberOfParticipants } = await supabase
         .from('pivot_fidelity_programs_participants')
         .select('*', { count: 'exact', head: true })
-        .eq('fidelity_program_id', fidelityProgramData.id);
+        .eq('fidelity_program_id', fidelityProgramData.id)
+        .is('deleted_at', null);
 
-      if (!numberOfParticipants) {
+      if (numberOfParticipants === null) {
         return {
           data: null,
           code: 'UNEXPECTED_ERROR',
@@ -76,26 +105,31 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
       const { count: numberOfRewards } = await supabase
         .from('rewards')
         .select('*', { count: 'exact', head: true })
-        .eq('fidelity_program_id', fidelityProgramData.id);
+        .eq('fidelity_program_id', fidelityProgramData.id)
+        .is('deleted_at', null);
 
-      if (!numberOfRewards) {
+      if (numberOfRewards === null) {
         return {
           data: null,
           code: 'UNEXPECTED_ERROR',
         };
       }
 
-      const differenceBetweenDates = dayjs().diff(
-        dayjs(),
-        fidelityProgramData.created_at,
-      );
+      const differenceBetweenDatesInDays = dayjs()
+        .startOf('date')
+        .diff(dayjs(fidelityProgramData.created_at).startOf('date'), 'days');
+
+      const createdAt = dayjs(fidelityProgramData.created_at).format('DD/MM/YYYY');
 
       return {
         data: {
+          id: fidelityProgramData.id,
+          name: fidelityProgramData.name,
           numberOfParticipants,
           numberOfRewards,
           scoreRate: fidelityProgramData.score_rate,
-          activeDays: differenceBetweenDates,
+          numberOfActiveDays: differenceBetweenDatesInDays,
+          createdAt,
         },
         code: 'SUCCESS',
       };
@@ -105,7 +139,43 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
         code: 'UNEXPECTED_ERROR',
       };
     } finally {
-      setIsLoadingGetByBusinessOwnerId(false);
+      setIsLoadingGetSummaryByBusinessOwnerId(false);
+    }
+  };
+
+  const getDetailsByBusinessOwnerId = async (
+    businessOwnerId: string,
+  ): Promise<GetDetailsByBusinessOwnerIdOutput> => {
+    try {
+      setIsLoadingGetDetailsByBusinessOwnerId(true);
+
+      const { data } = await supabase
+        .from('fidelity_programs')
+        .select('*')
+        .eq('business_owner_id', businessOwnerId);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'NOT_FIDELITY_PROGRAM_CREATED',
+        };
+      }
+
+      return {
+        data: {
+          id: data[0].id,
+          name: data[0].name,
+          scoreRate: String(data[0].score_rate).replace('.', ','),
+        },
+        code: 'SUCCESS',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingGetDetailsByBusinessOwnerId(false);
     }
   };
 
@@ -150,10 +220,45 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
     }
   };
 
+  const update = async ({ id, name, scoreRate }: UpdateInput): Promise<UpdateOutput> => {
+    try {
+      setIsLoadingUpdate(true);
+
+      const { error } = await supabase
+        .from('fidelity_programs')
+        .update({
+          name,
+          score_rate: scoreRate,
+          updated_at: new Date(),
+        })
+        .eq('id', id);
+
+      if (error) {
+        return {
+          code: 'UNEXPECTED_ERROR',
+        };
+      }
+
+      return {
+        code: 'UPDATED',
+      };
+    } catch {
+      return {
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingUpdate(false);
+    }
+  };
+
   return {
-    isLoadingGetByBusinessOwnerId,
+    isLoadingGetSummaryByBusinessOwnerId,
+    isLoadingGetDetailsByBusinessOwnerId,
     isLoadingRegister,
-    getByBusinessOwnerId,
+    isLoadingUpdate,
+    getSummaryByBusinessOwnerId,
+    getDetailsByBusinessOwnerId,
     register,
+    update,
   };
 };

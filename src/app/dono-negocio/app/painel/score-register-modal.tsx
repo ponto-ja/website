@@ -88,7 +88,7 @@ export const ScoreRegisterModal = () => {
 
           <div className="w-full bg-violet-200 rounded my-4 p-3">
             <p className="font-inter font-medium text-base text-gray-500 text-center">
-              Saldo atual do participante
+              Saldo atual do participante * [ VALIDAR SE DONO TEM ASSINATURA ATIVA ] *
             </p>
             <p className="font-inter font-semibold text-3xl text-gray-500 text-center mt-2">
               20
