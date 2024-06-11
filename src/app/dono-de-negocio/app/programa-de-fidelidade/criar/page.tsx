@@ -92,7 +92,7 @@ export default function CreateFidelityProgramPage() {
           description: 'Seu programa de fidelidade foi criado com sucesso.',
         });
 
-        router.replace('/dono-negocio/app/painel');
+        router.replace('/dono-de-negocio/app/painel');
         break;
       }
 

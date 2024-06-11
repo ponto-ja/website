@@ -6,54 +6,44 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import { ThreeDots } from 'react-loader-spinner';
 import { Button } from '@/components/button';
 import { InputField } from '@/components/input-field';
-import { registerAccountSchema, RegisterAccountData } from './register-account-schema';
+import {
+  AuthenticateAccountData,
+  authenticateAccountSchema,
+} from './authenticate-account-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useBusinessOwner } from '@/hooks/use-business-owner';
 import { useToast } from '@/components/ui/toast/use-toast';
+import { useBusinessOwner } from '@/hooks/use-business-owner';
 import { useUserStore } from '@/store/user-store';
 
-export default function RegisterAccountPage() {
+export default function AuthenticateAccountPage() {
   const router = useRouter();
   const {
     register,
     handleSubmit,
-    setError,
     clearErrors,
+    setError,
     reset,
     formState: { errors },
-  } = useForm<RegisterAccountData>({
-    resolver: zodResolver(registerAccountSchema),
+  } = useForm<AuthenticateAccountData>({
+    resolver: zodResolver(authenticateAccountSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
       email: '',
     },
   });
   const { toast } = useToast();
-  const {
-    register: registerBusinessOwner,
-    isLoadingRegister,
-    authenticate,
-    isLoadingAuthenticate,
-  } = useBusinessOwner();
+  const { authenticate, isLoadingAuthenticate } = useBusinessOwner();
   const { setUser } = useUserStore();
 
-  const isLoading = isLoadingRegister || isLoadingAuthenticate;
-
-  const handleRegisterBusinessOwnerAccount: SubmitHandler<RegisterAccountData> = async ({
-    firstName,
-    lastName,
+  const handleAuthenticateAccount: SubmitHandler<AuthenticateAccountData> = async ({
     email,
   }) => {
     clearErrors('root');
 
-    const { code } = await registerBusinessOwner({ firstName, lastName, email });
+    const { data, code } = await authenticate({ email });
 
     switch (code) {
-      case 'CREATED': {
-        const { data: user } = await authenticate({ email });
-
-        setUser({ id: user!.id, role: user!.role });
+      case 'SUCCESS': {
+        setUser(data!);
 
         toast({
           title: '✅ Credencial válida!',
@@ -62,19 +52,19 @@ export default function RegisterAccountPage() {
 
         reset();
 
-        router.push('/dono-negocio/app');
+        router.push('/dono-de-negocio/app');
         break;
       }
 
-      case 'EMAIL_ALREADY_EXISTS': {
-        setError('email', { message: 'E-mail já cadastrado' });
+      case 'INVALID_CREDENTIAL': {
+        setError('email', { message: 'Credencial inválida' });
         break;
       }
 
       case 'UNEXPECTED_ERROR': {
         toast({
           title: 'Ops! Erro inesperado :(',
-          description: 'Houve um erro na criação da sua conta, tente novamente.',
+          description: 'Houve um erro na autenticação da sua conta, tente novamente.',
           variant: 'destructive',
           titleClassName: 'text-white',
           descriptionClassName: 'text-white',
@@ -88,33 +78,16 @@ export default function RegisterAccountPage() {
     <main className="w-full flex flex-col items-center max-[400px]:px-3 max-[400px]:my-[30px]">
       <div>
         <h2 className="font-inter font-semibold text-2xl text-gray-800 text-center max-[400px]:text-[20px]">
-          Criar Conta
+          Entrar
         </h2>
         <p className="font-inter font-normal text-sm text-gray-600 text-center">
-          Preencha as informações para se cadastrar
+          Acesse sua conta usando seu e-mail
         </p>
       </div>
 
       <form
         className="mt-10 max-w-[360px] w-full"
-        onSubmit={handleSubmit(handleRegisterBusinessOwnerAccount)}>
-        <InputField
-          type="text"
-          placeholder="Digite seu nome"
-          label="Nome"
-          required={true}
-          error={errors.firstName?.message}
-          {...register('firstName')}
-        />
-        <InputField
-          type="text"
-          placeholder="Digite seu sobrenome"
-          label="Sobrenome"
-          required={true}
-          rootClassName="my-3"
-          error={errors.lastName?.message}
-          {...register('lastName')}
-        />
+        onSubmit={handleSubmit(handleAuthenticateAccount)}>
         <InputField
           type="email"
           placeholder="Digite seu e-mail"
@@ -124,9 +97,9 @@ export default function RegisterAccountPage() {
           {...register('email')}
         />
         <Button
-          disabled={isLoading}
+          disabled={isLoadingAuthenticate}
           className="bg-violet-900 w-full mt-4 py-2 font-inter text-sm text-white flex justify-center">
-          {isLoading ? (
+          {isLoadingAuthenticate ? (
             <ThreeDots
               height="20"
               width="40"
@@ -136,13 +109,15 @@ export default function RegisterAccountPage() {
               visible={true}
             />
           ) : (
-            'Criar conta'
+            'Acessar conta'
           )}
         </Button>
         <p className="font-inter font-normal text-sm text-gray-600 text-center mt-4">
-          Já possui uma conta?{' '}
-          <Link href="/dono-negocio/entrar" className="text-violet-900 font-medium">
-            Faça login
+          Ainda não possui uma conta?{' '}
+          <Link
+            href="/dono-de-negocio/criar-conta"
+            className="text-violet-900 font-medium">
+            Cadastre-se
           </Link>
         </p>
       </form>

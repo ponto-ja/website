@@ -25,7 +25,7 @@ export const Header: FC<HeaderProps> = ({
 }) => {
   const baseLink = {
     client: '/cliente',
-    owner: '/dono-negocio',
+    owner: '/dono-de-negocio',
   }[profile];
   const accessAccountLink = `${baseLink}/entrar`;
   const createAccountLink = `${baseLink}/criar-conta`;

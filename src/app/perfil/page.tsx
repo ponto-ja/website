@@ -17,7 +17,7 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-2 gap-6 max-[400px]:grid-cols-1">
         <Link
-          href="/dono-negocio/entrar"
+          href="/dono-de-negocio/entrar"
           className="flex flex-col items-center gap-4 cursor-pointer px-3 py-4 border-[2px] border-violet-900 rounded-lg">
           <Image
             src={{

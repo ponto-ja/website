@@ -11,7 +11,7 @@ export const Logo = () => {
   const getHref = () => {
     if (!user.id || !user.role) return '/perfil';
 
-    if (user.role === 'BUSINESS_OWNER') return '/dono-negocio/app';
+    if (user.role === 'BUSINESS_OWNER') return '/dono-de-negocio/app';
 
     if (user.role === 'PARTICIPANT') return '/cliente/app';
   };

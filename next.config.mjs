@@ -8,8 +8,8 @@ const nextConfig = {
         permanent: false,
       },
       {
-        source: '/dono-negocio/app',
-        destination: '/dono-negocio/app/painel',
+        source: '/dono-de-negocio/app',
+        destination: '/dono-de-negocio/app/painel',
         permanent: false,
       },
       {

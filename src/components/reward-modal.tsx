@@ -16,7 +16,7 @@ import { Button } from '@/components/button';
 import {
   RegisterRewardData,
   registerRewardSchema,
-} from '../app/dono-negocio/app/programa-de-fidelidade/criar/register-reward-schema';
+} from '../app/dono-de-negocio/app/programa-de-fidelidade/criar/register-reward-schema';
 import { InputField } from '@/components/input-field';
 import { mask } from '@/helpers/mask';
 import { RewardData } from '@/@types/reward-data';

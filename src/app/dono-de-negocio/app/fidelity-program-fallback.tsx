@@ -9,7 +9,7 @@ export const FidelityProgramFallback = () => {
         Crie seu programa de fidelidade para começar.
       </h2>
       <Link
-        href="/dono-negocio/app/programa-de-fidelidade/criar"
+        href="/dono-de-negocio/app/programa-de-fidelidade/criar"
         className="bg-violet-900 py-2 font-inter text-sm text-white mt-4 px-2 rounded-md">
         Criar programa de fidelidade
       </Link>

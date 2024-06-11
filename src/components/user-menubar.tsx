@@ -52,7 +52,7 @@ export const UserMenubar = () => {
 
   const handleSignOut = async () => {
     clearUser();
-    router.push('/dono-negocio/entrar');
+    router.push('/dono-de-negocio/entrar');
   };
 
   useEffect(() => {
@@ -75,19 +75,19 @@ export const UserMenubar = () => {
         <MenubarContent className="border p-1 mr-5">
           {user.role === 'BUSINESS_OWNER' && (
             <div className="hidden max-[1000px]:block">
-              <Link href="/dono-negocio/app/painel">
+              <Link href="/dono-de-negocio/app/painel">
                 <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
                   <Boxes color="#374151" size={20} strokeWidth={1.8} />
                   Painel
                 </MenubarItem>
               </Link>
-              <Link href="/dono-negocio/app/programa-de-fidelidade">
+              <Link href="/dono-de-negocio/app/programa-de-fidelidade">
                 <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
                   <Gift color="#374151" size={20} strokeWidth={1.8} />
                   Programa de Fidelidade
                 </MenubarItem>
               </Link>
-              <Link href="/dono-negocio/app/participantes">
+              <Link href="/dono-de-negocio/app/participantes">
                 <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
                   <Users color="#374151" size={20} strokeWidth={1.8} />
                   Participantes
