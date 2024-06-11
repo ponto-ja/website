@@ -1,7 +1,6 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { ComponentProps, FC } from 'react';
-import { NotebookPen, Headset, LogOut, Menu, Boxes, Gift, Users } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import {
   Menubar,
   MenubarContent,
@@ -10,8 +9,8 @@ import {
   MenubarTrigger,
 } from '@/components/ui/menubar';
 import { twMerge } from 'tailwind-merge';
-import LogoImage from '@/assets/images/logo.png';
 import { UserMenubar } from '@/components/user-menubar';
+import { Logo } from '@/components/logo';
 
 type HeaderProps = {
   profile?: 'client' | 'owner';
@@ -37,17 +36,7 @@ export const Header: FC<HeaderProps> = ({
         'max-w-[1040px] w-full mx-auto mt-4 flex items-center justify-between px-4',
         className,
       )}>
-      <Link href="/perfil" className="relative">
-        <Image
-          src={{
-            src: LogoImage.src,
-            width: 114,
-            height: 40,
-          }}
-          alt="PontoJá"
-        />
-        <h1 className="absolute top-0 opacity-0">Ponto Já</h1>
-      </Link>
+      <Logo />
 
       <UserMenubar />
 
