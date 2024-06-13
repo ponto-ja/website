@@ -34,10 +34,18 @@ type GetByIdOutput = {
   code: 'SUCCESS' | 'INVALID_ID' | 'UNEXPECTED_ERROR';
 };
 
+type CheckSubscriptionOutput = {
+  data: {
+    hasActiveSubscription: boolean;
+  } | null;
+  code: 'SUCCESS' | 'UNEXPECTED_ERROR';
+};
+
 export const useBusinessOwner = () => {
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
   const [isLoadingAuthenticate, setIsLoadingAuthenticate] = useState(false);
   const [isLoadingGetById, setIsLoadingGetById] = useState(false);
+  const [isLoadingCheckSubscription, setIsLoadingCheckSubscription] = useState(false);
 
   const register = async ({
     firstName,
@@ -155,12 +163,48 @@ export const useBusinessOwner = () => {
     }
   };
 
+  const checkSubscription = async (
+    businessOwnerId: string,
+  ): Promise<CheckSubscriptionOutput> => {
+    try {
+      setIsLoadingCheckSubscription(true);
+
+      const { data } = await supabase
+        .from('business_owners')
+        .select('*')
+        .eq('id', businessOwnerId);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'UNEXPECTED_ERROR',
+        };
+      }
+
+      return {
+        data: {
+          hasActiveSubscription: data[0].has_active_subscription,
+        },
+        code: 'SUCCESS',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingCheckSubscription(false);
+    }
+  };
+
   return {
     isLoadingRegister,
     isLoadingAuthenticate,
     isLoadingGetById,
+    isLoadingCheckSubscription,
     register,
     authenticate,
     getById,
+    checkSubscription,
   };
 };

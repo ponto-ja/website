@@ -18,7 +18,18 @@ const currency = (input: string) => {
   return formattedValue;
 };
 
+const phoneNumber = (input: string) => {
+  input = input.replace(/\D/g, '');
+  input = input.replace(/^(\d)/, '($1');
+  input = input.replace(/^(\(\d{2})(\d)/, '$1) $2');
+  input = input.replace(/(\d{5})(\d{1,5})/, '$1-$2');
+  input = input.replace(/(-\d{4})\d+?$/, '$1');
+
+  return input;
+};
+
 export const mask = {
   onlyNumbers,
   currency,
+  phoneNumber,
 };

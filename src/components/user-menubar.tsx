@@ -33,6 +33,8 @@ export const UserMenubar = () => {
         const initialLetterFromLastName = data!.lastName[0];
 
         setFallback(initialLetterFromFirstName.concat(initialLetterFromLastName));
+
+        //TODO: show a toast if user has no active subscription
         break;
       }
 

@@ -74,6 +74,13 @@ export const PanelContent = () => {
     }
   };
 
+  const onRegisterParticipant = () => {
+    setFidelityProgramSummary((state) => ({
+      ...state!,
+      numberOfParticipants: state!.numberOfParticipants + 1,
+    }));
+  };
+
   useEffect(() => {
     if (user.id !== null) {
       handleFetchFidelityProgramSummary();
@@ -88,7 +95,17 @@ export const PanelContent = () => {
         <h2 className="font-inter font-bold text-[26px] text-gray-700 max-[600px]:text-[24px]">
           {fidelityProgramSummary?.name}
         </h2>
-        <ScoreRegisterModal />
+        <ScoreRegisterModal
+          fidelityProgramId={fidelityProgramSummary?.id ?? ''}
+          scoreRate={
+            fidelityProgramSummary?.scoreRate
+              ? Number(
+                  fidelityProgramSummary.scoreRate.replace('R$', '').replace(',', '.'),
+                )
+              : 0
+          }
+          onRegisterParticipant={onRegisterParticipant}
+        />
       </div>
 
       <div className="max-w-[1088px] w-full overflow-auto flex items-center gap-4 my-4 max-[600px]:my-2 max-[600px]:gap-2">
