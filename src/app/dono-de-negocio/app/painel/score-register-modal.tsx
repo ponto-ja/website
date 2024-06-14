@@ -88,6 +88,8 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
   const {
     register: registerRelationBetweenFidelityProgramAndParticipant,
     isLoadingRegister: isLoadingRegisterRelationBetweenFidelityProgramAndParticipant,
+    getByFidelityProgramIdAndParticipantId,
+    isLoadingGetByFidelityProgramIdAndParticipantId,
   } = usePivotFidelityProgramsParticipants();
   const [open, setOpen] = useState(false);
   const [participant, setParticipant] = useState<ParticipantData | null>(null);
@@ -101,7 +103,8 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     isLoadingRegisterScoreHistory ||
     isLoadingRegisterParticipant ||
     isLoadingRegisterScore ||
-    isLoadingRegisterRelationBetweenFidelityProgramAndParticipant;
+    isLoadingRegisterRelationBetweenFidelityProgramAndParticipant ||
+    isLoadingGetByFidelityProgramIdAndParticipantId;
   const scorePerAmount = ['', '0,00'].includes(amountValue)
     ? 0
     : Math.trunc(Number(amountValue.replace(',', '.')) / scoreRate);
@@ -160,6 +163,40 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
         return;
       }
 
+      const { code } = await getByFidelityProgramIdAndParticipantId({
+        fidelityProgramId: fidelityProgram.id!,
+        participantId: participant!.id,
+      });
+
+      if (code === 'UNEXPECTED_ERROR') {
+        toast({
+          title: 'Ops! Erro inesperado :(',
+          description: 'Houve um erro no cadastro de pontos, tente novamente.',
+          variant: 'destructive',
+          titleClassName: 'text-white',
+          descriptionClassName: 'text-white',
+        });
+        return;
+      }
+
+      if (code === 'RELATION_NOT_FOUND') {
+        const { code } = await registerRelationBetweenFidelityProgramAndParticipant({
+          fidelityProgramId: fidelityProgram.id!,
+          participantId: participant!.id,
+        });
+
+        if (code === 'UNEXPECTED_ERROR') {
+          toast({
+            title: 'Ops! Erro inesperado :(',
+            description: 'Houve um erro no cadastro de pontos, tente novamente.',
+            variant: 'destructive',
+            titleClassName: 'text-white',
+            descriptionClassName: 'text-white',
+          });
+          return;
+        }
+      }
+
       const { code: scoreHistoryCode } = await registerScoreHistory({
         fidelityProgramId: fidelityProgram.id!,
         participantId: participant!.id,
@@ -194,8 +231,6 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
         });
         return;
       }
-
-      //TODO: validate if relation between entities already exists
 
       const { code: relationCode } =
         await registerRelationBetweenFidelityProgramAndParticipant({
@@ -270,7 +305,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     });
 
     switch (code) {
-      case 'SUCCESS': {
+      case 'PARTICIPANT_FOUND': {
         setParticipant({
           id: data!.id,
           firstName: data!.firstName,

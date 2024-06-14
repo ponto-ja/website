@@ -20,7 +20,7 @@ type GetByPhoneNumberAndFidelityProgramIdInput = {
 
 type GetByPhoneNumberAndFidelityProgramIdOutput = {
   data: ParticipantData | null;
-  code: 'SUCCESS' | 'PARTICIPANT_NOT_FOUND' | 'UNEXPECTED_ERROR';
+  code: 'PARTICIPANT_FOUND' | 'PARTICIPANT_NOT_FOUND' | 'UNEXPECTED_ERROR';
 };
 
 type RegisterInput = {
@@ -100,7 +100,7 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
             score: data[0].score,
           },
         },
-        code: 'SUCCESS',
+        code: 'PARTICIPANT_FOUND',
       };
     } catch {
       return {
