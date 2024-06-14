@@ -11,6 +11,7 @@ import { FidelityProgramFallback } from '../fidelity-program-fallback';
 import { FidelityProgramInformation } from './fidelity-program-information';
 import { useReward } from '@/hooks/use-reward';
 import { RewardData } from '@/@types/reward-data';
+import { useFidelityProgramStore } from '@/store/fidelity-program-store';
 
 type FidelityProgramDetailsData = {
   id: string;
@@ -21,6 +22,7 @@ type FidelityProgramDetailsData = {
 export const FidelityProgramContent = () => {
   const { toast } = useToast();
   const { user } = useUserStore();
+  const { setFidelityProgram } = useFidelityProgramStore();
   const { getDetailsByBusinessOwnerId, isLoadingGetDetailsByBusinessOwnerId } =
     useFidelityProgram({
       initialState: {
@@ -51,9 +53,7 @@ export const FidelityProgramContent = () => {
           scoreRate: data!.scoreRate,
         });
 
-        //TODO: save fidelity program on global state
-        //
-        //
+        setFidelityProgram({ id: data!.id });
 
         const { data: rewards, code } = await findByFidelityProgramId(data!.id);
 

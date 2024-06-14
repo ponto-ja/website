@@ -20,6 +20,7 @@ import { useReward } from '@/hooks/use-reward';
 import { useUserStore } from '@/store/user-store';
 import { mask } from '@/helpers/mask';
 import { RewardData } from '@/@types/reward-data';
+import { useFidelityProgramStore } from '@/store/fidelity-program-store';
 
 export default function CreateFidelityProgramPage() {
   const router = useRouter();
@@ -38,6 +39,7 @@ export default function CreateFidelityProgramPage() {
   });
   const { toast } = useToast();
   const { user } = useUserStore();
+  const { setFidelityProgram } = useFidelityProgramStore();
   const {
     register: registerFidelityProgram,
     isLoadingRegister: isLoadingRegisterFidelityProgram,
@@ -72,6 +74,8 @@ export default function CreateFidelityProgramPage() {
 
     switch (code) {
       case 'CREATED': {
+        setFidelityProgram({ id: data!.id });
+
         const rewardsToSave = rewards.map((reward) =>
           registerReward({
             fidelityProgramId: data!.id,

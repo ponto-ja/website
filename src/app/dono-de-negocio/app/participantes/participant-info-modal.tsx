@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { FC, useState } from 'react';
 import { UserRound, Phone, CalendarClock, CircleAlert, HandCoins } from 'lucide-react';
 import {
   Dialog,
@@ -12,14 +12,19 @@ import {
 import { Button } from '@/components/button';
 import { Participant } from './participant';
 import { Reward } from '@/components/reward';
+import { Participant as ParticipantProps } from './participants-content';
 
-export const ParticipantInfoModal = () => {
+type ParticipantInfoModalProps = {
+  participant: ParticipantProps;
+};
+
+export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({ participant }) => {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={(value) => setOpen(value)}>
       <DialogTrigger>
-        <Participant />
+        <Participant {...participant} />
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-auto">
         <DialogHeader>

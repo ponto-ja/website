@@ -34,7 +34,7 @@ const fidelityProgramStore = (
 
 export const useFidelityProgramStore = create(
   persist(fidelityProgramStore, {
-    name: '@pontoja:app.fidelity_program',
+    name: '@pontoja:app.fidelity-program',
     storage: createJSONStorage(() => storage),
   }),
 );

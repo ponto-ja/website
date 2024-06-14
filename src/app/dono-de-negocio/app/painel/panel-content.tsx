@@ -15,6 +15,7 @@ import { ScoreHistoryFallback } from './score-history-fallback';
 import { useScoreHistory } from '@/hooks/use-score-history';
 import { ScoreHistoryData } from '@/@types/score-history-data';
 import { Oval } from 'react-loader-spinner';
+import { useFidelityProgramStore } from '@/store/fidelity-program-store';
 
 type FidelityProgramSummaryData = {
   id: string;
@@ -29,6 +30,7 @@ type FidelityProgramSummaryData = {
 export const PanelContent = () => {
   const { toast } = useToast();
   const { user } = useUserStore();
+  const { setFidelityProgram } = useFidelityProgramStore();
   const { getSummaryByBusinessOwnerId, isLoadingGetSummaryByBusinessOwnerId } =
     useFidelityProgram({
       initialState: {
@@ -76,7 +78,6 @@ export const PanelContent = () => {
 
     switch (code) {
       case 'SUCCESS': {
-        //TODO: save on state
         setFidelityProgramSummary({
           id: data!.id,
           name: data!.name,
@@ -87,11 +88,9 @@ export const PanelContent = () => {
           createdAt: data!.createdAt,
         });
 
-        //TODO: call function to fetch score history
         await handleFetchScoreHistory(data!.id);
 
-        //TODO: save fidelity program on global state
-        //TODO: call function to fetch score history
+        setFidelityProgram({ id: data!.id });
         break;
       }
 
@@ -138,7 +137,6 @@ export const PanelContent = () => {
           {fidelityProgramSummary?.name}
         </h2>
         <ScoreRegisterModal
-          fidelityProgramId={fidelityProgramSummary?.id ?? ''}
           scoreRate={
             fidelityProgramSummary?.scoreRate
               ? Number(

@@ -2,13 +2,23 @@ import { useState } from 'react';
 import { supabase } from '@/infra/database/supabase/client';
 import { ParticipantData } from '@/@types/participant-data';
 import cuid from 'cuid';
+import dayjs from 'dayjs';
 
-type GetByPhoneNumberInput = {
+type ParticipantHookProps = {
+  initialState?: {
+    isLoadingGetByPhoneNumberAndFidelityProgramId?: boolean;
+    isLoadingRegister?: boolean;
+    isLoadingFindByFidelityProgramId?: boolean;
+    isLoadingGetByPhoneNumber?: boolean;
+  };
+};
+
+type GetByPhoneNumberAndFidelityProgramIdInput = {
   phoneNumber: string;
   fidelityProgramId: string;
 };
 
-type GetByPhoneNumberOutput = {
+type GetByPhoneNumberAndFidelityProgramIdOutput = {
   data: ParticipantData | null;
   code: 'SUCCESS' | 'PARTICIPANT_NOT_FOUND' | 'UNEXPECTED_ERROR';
 };
@@ -24,16 +34,46 @@ type RegisterOutput = {
   code: 'CREATED' | 'UNEXPECTED_ERROR';
 };
 
-export const useParticipant = () => {
-  const [isLoadingGetByPhoneNumber, setIsLoadingGetByPhoneNumber] = useState(false);
-  const [isLoadingRegister, setIsLoadingRegister] = useState(false);
+type FindByFidelityProgramIdOutput = {
+  data:
+    | (Omit<ParticipantData, 'score'> & {
+        phoneNumber: string;
+        createdAt: string;
+      })[]
+    | null;
+  code: 'SUCCESS' | 'NO_PARTICIPANTS' | 'UNEXPECTED_ERROR';
+};
 
-  const getByPhoneNumber = async ({
+type GetByPhoneNumberOutput = {
+  data:
+    | (Omit<ParticipantData, 'score'> & {
+        phoneNumber: string;
+        createdAt: string;
+      })
+    | null;
+  code: 'PARTICIPANT_FOUND' | 'PARTICIPANT_NOT_FOUND' | 'UNEXPECTED_ERROR';
+};
+
+export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
+  const [
+    isLoadingGetByPhoneNumberAndFidelityProgramId,
+    setIsLoadingGetByPhoneNumberAndFidelityProgramId,
+  ] = useState(initialState?.isLoadingGetByPhoneNumberAndFidelityProgramId ?? false);
+  const [isLoadingRegister, setIsLoadingRegister] = useState(
+    initialState?.isLoadingRegister ?? false,
+  );
+  const [isLoadingFindByFidelityProgramId, setIsLoadingFindByFidelityProgramId] =
+    useState(initialState?.isLoadingFindByFidelityProgramId ?? false);
+  const [isLoadingGetByPhoneNumber, setIsLoadingGetByPhoneNumber] = useState(
+    initialState?.isLoadingGetByPhoneNumber ?? false,
+  );
+
+  const getByPhoneNumberAndFidelityProgramId = async ({
     phoneNumber,
     fidelityProgramId,
-  }: GetByPhoneNumberInput): Promise<GetByPhoneNumberOutput> => {
+  }: GetByPhoneNumberAndFidelityProgramIdInput): Promise<GetByPhoneNumberAndFidelityProgramIdOutput> => {
     try {
-      setIsLoadingGetByPhoneNumber(true);
+      setIsLoadingGetByPhoneNumberAndFidelityProgramId(true);
 
       const { data } = await supabase
         .from('scores')
@@ -68,7 +108,7 @@ export const useParticipant = () => {
         code: 'UNEXPECTED_ERROR',
       };
     } finally {
-      setIsLoadingGetByPhoneNumber(false);
+      setIsLoadingGetByPhoneNumberAndFidelityProgramId(false);
     }
   };
 
@@ -113,10 +153,95 @@ export const useParticipant = () => {
     }
   };
 
+  const findByFidelityProgramId = async (
+    fidelityProgramId: string,
+  ): Promise<FindByFidelityProgramIdOutput> => {
+    try {
+      setIsLoadingFindByFidelityProgramId(true);
+
+      const { data } = await supabase
+        .from('participants')
+        .select(
+          'id, first_name, last_name, phone_number, created_at, pivot_fidelity_programs_participants!inner(fidelity_program_id)',
+        )
+        .eq('pivot_fidelity_programs_participants.fidelity_program_id', fidelityProgramId)
+        .order('created_at', { ascending: false });
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'NO_PARTICIPANTS',
+        };
+      }
+
+      const participants = data.map((participant) => ({
+        id: participant.id,
+        firstName: participant.first_name,
+        lastName: participant.last_name,
+        phoneNumber: participant.phone_number,
+        createdAt: dayjs(participant.created_at).format('DD/MM/YYYY'),
+      }));
+
+      return {
+        data: participants,
+        code: 'SUCCESS',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingFindByFidelityProgramId(false);
+    }
+  };
+
+  const getByPhoneNumber = async (
+    phoneNumber: string,
+  ): Promise<GetByPhoneNumberOutput> => {
+    try {
+      setIsLoadingGetByPhoneNumber(true);
+
+      const { data } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('phone_number', phoneNumber);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'PARTICIPANT_NOT_FOUND',
+        };
+      }
+
+      return {
+        data: {
+          id: data[0].id,
+          firstName: data[0].first_name,
+          lastName: data[0].last_name,
+          phoneNumber: data[0].phone_number,
+          createdAt: dayjs(data[0].phone_number).format('DD/MM/YYYY'),
+        },
+        code: 'PARTICIPANT_FOUND',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingGetByPhoneNumber(false);
+    }
+  };
+
   return {
-    isLoadingGetByPhoneNumber,
+    isLoadingGetByPhoneNumberAndFidelityProgramId,
     isLoadingRegister,
-    getByPhoneNumber,
+    isLoadingFindByFidelityProgramId,
+    isLoadingGetByPhoneNumber,
+    getByPhoneNumberAndFidelityProgramId,
     register,
+    findByFidelityProgramId,
+    getByPhoneNumber,
   };
 };

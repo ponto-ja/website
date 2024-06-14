@@ -29,16 +29,15 @@ import { useScore } from '@/hooks/use-score';
 import { useScoreHistory } from '@/hooks/use-score-history';
 import { ScoreOperation } from '@/enums/score-operation';
 import { usePivotFidelityProgramsParticipants } from '@/hooks/use-pivot-fidelity-programs-participants';
+import { useFidelityProgramStore } from '@/store/fidelity-program-store';
 
 type ScoreRegisterModalProps = {
-  fidelityProgramId: string;
   scoreRate: number;
   onRegisterParticipant: () => void;
   onRegisterScore: () => void;
 };
 
 export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
-  fidelityProgramId,
   scoreRate,
   onRegisterParticipant,
   onRegisterScore,
@@ -68,10 +67,11 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     },
   });
   const { user } = useUserStore();
+  const { fidelityProgram } = useFidelityProgramStore();
   const { checkSubscription, isLoadingCheckSubscription } = useBusinessOwner();
   const {
-    getByPhoneNumber,
-    isLoadingGetByPhoneNumber,
+    getByPhoneNumberAndFidelityProgramId,
+    isLoadingGetByPhoneNumberAndFidelityProgramId,
     register: registerParticipant,
     isLoadingRegister: isLoadingRegisterParticipant,
   } = useParticipant();
@@ -161,7 +161,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
       }
 
       const { code: scoreHistoryCode } = await registerScoreHistory({
-        fidelityProgramId: fidelityProgramId,
+        fidelityProgramId: fidelityProgram.id!,
         participantId: participant!.id,
         score: scorePerAmount,
         operation: ScoreOperation.EARNING,
@@ -195,9 +195,11 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
         return;
       }
 
+      //TODO: validate if relation between entities already exists
+
       const { code: relationCode } =
         await registerRelationBetweenFidelityProgramAndParticipant({
-          fidelityProgramId,
+          fidelityProgramId: fidelityProgram.id!,
           participantId: participantData!.id,
         });
 
@@ -213,7 +215,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
       }
 
       const { code: scoreCode } = await registerScore({
-        fidelityProgramId,
+        fidelityProgramId: fidelityProgram.id!,
         participantId: participantData!.id,
         score: scorePerAmount,
       });
@@ -230,7 +232,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
       }
 
       const { code: scoreHistoryCode } = await registerScoreHistory({
-        fidelityProgramId: fidelityProgramId,
+        fidelityProgramId: fidelityProgram.id!,
         participantId: participantData!.id,
         score: scorePerAmount,
         operation: ScoreOperation.EARNING,
@@ -262,9 +264,9 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
   };
 
   const handleGetParticipantByPhoneNumber = async () => {
-    const { data, code } = await getByPhoneNumber({
+    const { data, code } = await getByPhoneNumberAndFidelityProgramId({
       phoneNumber: mask.onlyNumbers(phoneNumberValue),
-      fidelityProgramId,
+      fidelityProgramId: fidelityProgram.id!,
     });
 
     switch (code) {
@@ -339,7 +341,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
                   value={value}
                   onChange={({ target }) => onChange(mask.phoneNumber(target.value))}
                 />
-                {isLoadingGetByPhoneNumber && (
+                {isLoadingGetByPhoneNumberAndFidelityProgramId && (
                   <Oval
                     visible={true}
                     height="22"

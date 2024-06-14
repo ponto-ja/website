@@ -15,6 +15,7 @@ import {
 import { useUserStore } from '@/store/user-store';
 import { useBusinessOwner } from '@/hooks/use-business-owner';
 import { useToast } from './ui/toast/use-toast';
+import { useFidelityProgramStore } from '@/store/fidelity-program-store';
 
 export const UserMenubar = () => {
   const router = useRouter();
@@ -22,6 +23,7 @@ export const UserMenubar = () => {
   const [fallback, setFallback] = useState<string | null>(null);
   const { toast } = useToast();
   const { user, clearUser } = useUserStore();
+  const { clearFidelityProgram } = useFidelityProgramStore();
   const { getById, isLoadingGetById } = useBusinessOwner();
 
   const handleFetchUser = async () => {
@@ -62,6 +64,7 @@ export const UserMenubar = () => {
 
   const handleSignOut = async () => {
     clearUser();
+    clearFidelityProgram();
     router.push('/dono-de-negocio/entrar');
   };
 
