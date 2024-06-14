@@ -79,7 +79,7 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
         .from('scores')
         .select('id, score, participant:participants!inner(id, first_name, last_name)')
         .eq('fidelity_program_id', fidelityProgramId)
-        .eq('participants.phone_number', phoneNumber);
+        .eq('participant.phone_number', phoneNumber);
 
       if (!data?.[0]) {
         return {

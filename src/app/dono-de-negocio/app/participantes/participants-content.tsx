@@ -39,6 +39,10 @@ export const ParticipantsContent = () => {
     switch (code) {
       case 'SUCCESS': {
         setParticipants(data!);
+        setShowFallback((state) => ({
+          ...state,
+          participants: false,
+        }));
         break;
       }
 
@@ -81,7 +85,17 @@ export const ParticipantsContent = () => {
 
   if (showFallback.fidelityProgram) return <FidelityProgramFallback />;
 
-  if (showFallback.participants) return <ParticipantsFallback />;
+  if (showFallback.participants)
+    return (
+      <>
+        <div className="w-full flex items-center justify-end">
+          <RegisterParticipantModal
+            onRegisterParticipant={() => handleFetchParticipants()}
+          />
+        </div>
+        <ParticipantsFallback />
+      </>
+    );
 
   return (
     <PageLoading isLoading={isLoadingFindByFidelityProgramId}>

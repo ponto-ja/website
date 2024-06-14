@@ -71,6 +71,10 @@ export const PanelContent = () => {
     }
 
     setScoreHistory(scoreHistoryData!);
+    setShowFallback((state) => ({
+      ...state,
+      scoreHistory: false,
+    }));
   };
 
   const handleFetchFidelityProgramSummary = async () => {

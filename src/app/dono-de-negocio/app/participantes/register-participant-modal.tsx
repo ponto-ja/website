@@ -229,6 +229,23 @@ export const RegisterParticipantModal: FC<RegisterParticipantModalProps> = ({
           return;
         }
 
+        const { code: scoreCode } = await registerScore({
+          fidelityProgramId: fidelityProgram.id!,
+          participantId: participantByPhoneNumberData!.id,
+          score: 0,
+        });
+
+        if (scoreCode === 'UNEXPECTED_ERROR') {
+          toast({
+            title: 'Ops! Erro inesperado :(',
+            description: 'Houve um erro no cadastro do participante, tente novamente.',
+            variant: 'destructive',
+            titleClassName: 'text-white',
+            descriptionClassName: 'text-white',
+          });
+          return;
+        }
+
         toast({
           title: '✅ Participante cadastrado com sucesso.',
         });
