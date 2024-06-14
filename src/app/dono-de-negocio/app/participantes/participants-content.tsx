@@ -12,6 +12,8 @@ import { FidelityProgramFallback } from '../fidelity-program-fallback';
 import { useFidelityProgramStore } from '@/store/fidelity-program-store';
 import { ParticipantsFallback } from './participants-fallback';
 
+const ONE_SECOND = 1000;
+
 export type Participant = Omit<ParticipantData, 'score'> & {
   phoneNumber: string;
   createdAt: string;
@@ -72,7 +74,7 @@ export const ParticipantsContent = () => {
           fidelityProgram: true,
         }));
       }
-    }, 1000);
+    }, ONE_SECOND);
 
     return () => clearTimeout(timeoutId);
   }, [fidelityProgram]);
