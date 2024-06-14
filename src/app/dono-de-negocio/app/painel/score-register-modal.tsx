@@ -37,15 +37,21 @@ type ScoreRegisterModalProps = {
   onRegisterScore: () => void;
 };
 
+type ParticipantCondition = {
+  app: Condition;
+  fidelityProgram: Condition;
+};
+
+type Condition = null | 'REGISTERED' | 'NOT_REGISTERED';
+
 export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
   scoreRate,
   onRegisterParticipant,
   onRegisterScore,
 }) => {
   const { toast } = useToast();
-  const [isParticipantNotFound, setIsParticipantNotFound] = useState<boolean | null>(
-    null,
-  );
+  const [participantCondition, setParticipantCondition] =
+    useState<ParticipantCondition | null>(null);
   const {
     register,
     formState: { errors },
@@ -55,7 +61,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     reset,
   } = useForm<RegisterScoreWithParticipantData>({
     resolver: zodResolver(
-      isParticipantNotFound === true
+      participantCondition?.app === 'NOT_REGISTERED'
         ? registerScoreWithParticipantDataSchema
         : registerScoreWithoutParticipantDataSchema,
     ),
@@ -74,6 +80,8 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     isLoadingGetByPhoneNumberAndFidelityProgramId,
     register: registerParticipant,
     isLoadingRegister: isLoadingRegisterParticipant,
+    getByPhoneNumber,
+    isLoadingGetByPhoneNumber,
   } = useParticipant();
   const {
     update,
@@ -88,8 +96,6 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
   const {
     register: registerRelationBetweenFidelityProgramAndParticipant,
     isLoadingRegister: isLoadingRegisterRelationBetweenFidelityProgramAndParticipant,
-    getByFidelityProgramIdAndParticipantId,
-    isLoadingGetByFidelityProgramIdAndParticipantId,
   } = usePivotFidelityProgramsParticipants();
   const [open, setOpen] = useState(false);
   const [participant, setParticipant] = useState<ParticipantData | null>(null);
@@ -103,8 +109,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     isLoadingRegisterScoreHistory ||
     isLoadingRegisterParticipant ||
     isLoadingRegisterScore ||
-    isLoadingRegisterRelationBetweenFidelityProgramAndParticipant ||
-    isLoadingGetByFidelityProgramIdAndParticipantId;
+    isLoadingRegisterRelationBetweenFidelityProgramAndParticipant;
   const scorePerAmount = ['', '0,00'].includes(amountValue)
     ? 0
     : Math.trunc(Number(amountValue.replace(',', '.')) / scoreRate);
@@ -146,7 +151,51 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
       return;
     }
 
-    if (isParticipantNotFound === false) {
+    if (participantCondition?.app === 'REGISTERED') {
+      if (participantCondition?.fidelityProgram === 'NOT_REGISTERED') {
+        const { code: scoreCode, data } = await registerScore({
+          fidelityProgramId: fidelityProgram.id!,
+          participantId: participant!.id,
+          score: scorePerAmount,
+        });
+
+        if (scoreCode === 'UNEXPECTED_ERROR') {
+          toast({
+            title: 'Ops! Erro inesperado :(',
+            description: 'Houve um erro no cadastro de pontos, tente novamente.',
+            variant: 'destructive',
+            titleClassName: 'text-white',
+            descriptionClassName: 'text-white',
+          });
+          return;
+        }
+
+        setParticipant((state) => ({
+          ...state!,
+          score: {
+            ...state!.score,
+            id: data!.id,
+          },
+        }));
+
+        const { code: relationCode } =
+          await registerRelationBetweenFidelityProgramAndParticipant({
+            fidelityProgramId: fidelityProgram.id!,
+            participantId: participant!.id,
+          });
+
+        if (relationCode === 'UNEXPECTED_ERROR') {
+          toast({
+            title: 'Ops! Erro inesperado :(',
+            description: 'Houve um erro no cadastro de pontos, tente novamente.',
+            variant: 'destructive',
+            titleClassName: 'text-white',
+            descriptionClassName: 'text-white',
+          });
+          return;
+        }
+      }
+
       const { code: scoreCode } = await update({
         id: participant!.score.id,
         score: participant!.score.score + scorePerAmount,
@@ -161,40 +210,6 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
           descriptionClassName: 'text-white',
         });
         return;
-      }
-
-      const { code } = await getByFidelityProgramIdAndParticipantId({
-        fidelityProgramId: fidelityProgram.id!,
-        participantId: participant!.id,
-      });
-
-      if (code === 'UNEXPECTED_ERROR') {
-        toast({
-          title: 'Ops! Erro inesperado :(',
-          description: 'Houve um erro no cadastro de pontos, tente novamente.',
-          variant: 'destructive',
-          titleClassName: 'text-white',
-          descriptionClassName: 'text-white',
-        });
-        return;
-      }
-
-      if (code === 'RELATION_NOT_FOUND') {
-        const { code } = await registerRelationBetweenFidelityProgramAndParticipant({
-          fidelityProgramId: fidelityProgram.id!,
-          participantId: participant!.id,
-        });
-
-        if (code === 'UNEXPECTED_ERROR') {
-          toast({
-            title: 'Ops! Erro inesperado :(',
-            description: 'Houve um erro no cadastro de pontos, tente novamente.',
-            variant: 'destructive',
-            titleClassName: 'text-white',
-            descriptionClassName: 'text-white',
-          });
-          return;
-        }
       }
 
       const { code: scoreHistoryCode } = await registerScoreHistory({
@@ -214,7 +229,11 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
         });
         return;
       }
-    } else if (isParticipantNotFound === true) {
+
+      if (participantCondition?.fidelityProgram === 'NOT_REGISTERED') {
+        onRegisterParticipant();
+      }
+    } else if (participantCondition?.app === 'NOT_REGISTERED') {
       const { data: participantData, code: participantCode } = await registerParticipant({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -299,25 +318,67 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
   };
 
   const handleGetParticipantByPhoneNumber = async () => {
-    const { data, code } = await getByPhoneNumberAndFidelityProgramId({
-      phoneNumber: mask.onlyNumbers(phoneNumberValue),
-      fidelityProgramId: fidelityProgram.id!,
-    });
+    const { code: codeByPhoneNumber, data: dataByPhoneNumber } = await getByPhoneNumber(
+      mask.onlyNumbers(phoneNumberValue),
+    );
 
-    switch (code) {
+    switch (codeByPhoneNumber) {
       case 'PARTICIPANT_FOUND': {
+        const { data, code } = await getByPhoneNumberAndFidelityProgramId({
+          phoneNumber: mask.onlyNumbers(phoneNumberValue),
+          fidelityProgramId: fidelityProgram.id!,
+        });
+
+        if (code === 'UNEXPECTED_ERROR') {
+          toast({
+            title: 'Ops! Erro inesperado :(',
+            description:
+              'Houve um erro no carregamento ao buscar o participante, tente novamente.',
+            variant: 'destructive',
+            titleClassName: 'text-white',
+            descriptionClassName: 'text-white',
+          });
+          return;
+        }
+
+        if (code === 'SCORE_NOT_FOUND') {
+          setParticipant({
+            id: dataByPhoneNumber!.id,
+            firstName: dataByPhoneNumber!.firstName,
+            lastName: dataByPhoneNumber!.lastName,
+            score: {
+              id: '',
+              score: 0,
+            },
+          });
+          setParticipantCondition({
+            app: 'REGISTERED',
+            fidelityProgram: 'NOT_REGISTERED',
+          });
+          return;
+        }
+
         setParticipant({
           id: data!.id,
           firstName: data!.firstName,
           lastName: data!.lastName,
-          score: data!.score,
+          score: {
+            id: data!.score.id,
+            score: data!.score.score,
+          },
         });
-        setIsParticipantNotFound(false);
+        setParticipantCondition({
+          app: 'REGISTERED',
+          fidelityProgram: 'REGISTERED',
+        });
         break;
       }
 
       case 'PARTICIPANT_NOT_FOUND': {
-        setIsParticipantNotFound(true);
+        setParticipantCondition({
+          app: 'NOT_REGISTERED',
+          fidelityProgram: 'NOT_REGISTERED',
+        });
         break;
       }
 
@@ -338,10 +399,10 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
   useEffect(() => {
     if (phoneNumberValue.length === 15) {
       setParticipant(null);
-      setIsParticipantNotFound(null);
+      setParticipantCondition(null);
       handleGetParticipantByPhoneNumber();
     } else {
-      setIsParticipantNotFound(null);
+      setParticipantCondition(null);
       setParticipant(null);
     }
   }, [phoneNumberValue]);
@@ -376,7 +437,8 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
                   value={value}
                   onChange={({ target }) => onChange(mask.phoneNumber(target.value))}
                 />
-                {isLoadingGetByPhoneNumberAndFidelityProgramId && (
+                {(isLoadingGetByPhoneNumberAndFidelityProgramId ||
+                  isLoadingGetByPhoneNumber) && (
                   <Oval
                     visible={true}
                     height="22"
@@ -391,7 +453,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
               </div>
             )}
           />
-          {isParticipantNotFound === true && (
+          {participantCondition?.app === 'NOT_REGISTERED' && (
             <>
               <div className="w-full bg-red-200 p-[6px] rounded flex items-center gap-2 my-2 border-[1px] border-red-500 mb-4">
                 <span>
@@ -422,7 +484,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
             </>
           )}
 
-          {!!participant && !isParticipantNotFound && (
+          {!!participant && participantCondition?.app === 'REGISTERED' && (
             <div className="w-full bg-green-200 p-[6px] rounded flex items-center gap-2 my-2 border-[1px] border-green-500 mb-4">
               <span>
                 <CircleCheckBig strokeWidth={2} color="#16a34a" size={20} />
@@ -458,7 +520,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
             )}
           />
 
-          {!!participant && !isParticipantNotFound && (
+          {!!participant && participantCondition?.app === 'REGISTERED' && (
             <div className="w-full bg-violet-200 rounded mt-4 p-3">
               <p className="font-inter font-medium text-base text-gray-500 text-center">
                 Saldo atual do participante
@@ -478,7 +540,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={(!participant && !isParticipantNotFound) || isLoading}
+              disabled={(!participant && !participantCondition) || isLoading}
               className="bg-violet-900 px-3 py-2 font-inter font-normal text-sm text-white min-w-[90px] flex justify-center">
               {isLoading ? (
                 <ThreeDots

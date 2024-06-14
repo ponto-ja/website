@@ -20,7 +20,7 @@ type GetByPhoneNumberAndFidelityProgramIdInput = {
 
 type GetByPhoneNumberAndFidelityProgramIdOutput = {
   data: ParticipantData | null;
-  code: 'PARTICIPANT_FOUND' | 'PARTICIPANT_NOT_FOUND' | 'UNEXPECTED_ERROR';
+  code: 'SCORE_FOUND' | 'SCORE_NOT_FOUND' | 'UNEXPECTED_ERROR';
 };
 
 type RegisterInput = {
@@ -84,7 +84,7 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
       if (!data?.[0]) {
         return {
           data: null,
-          code: 'PARTICIPANT_NOT_FOUND',
+          code: 'SCORE_NOT_FOUND',
         };
       }
 
@@ -100,7 +100,7 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
             score: data[0].score,
           },
         },
-        code: 'PARTICIPANT_FOUND',
+        code: 'SCORE_FOUND',
       };
     } catch {
       return {

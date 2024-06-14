@@ -18,6 +18,7 @@ type RegisterInput = {
 };
 
 type RegisterOutput = {
+  data: { id: string } | null;
   code: 'CREATED' | 'UNEXPECTED_ERROR';
 };
 
@@ -72,15 +73,20 @@ export const useScore = () => {
 
       if (!data?.[0]) {
         return {
+          data: null,
           code: 'UNEXPECTED_ERROR',
         };
       }
 
       return {
+        data: {
+          id: data[0].id,
+        },
         code: 'CREATED',
       };
     } catch {
       return {
+        data: null,
         code: 'UNEXPECTED_ERROR',
       };
     } finally {
