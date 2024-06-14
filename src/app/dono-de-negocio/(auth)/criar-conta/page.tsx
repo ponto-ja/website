@@ -55,11 +55,6 @@ export default function RegisterAccountPage() {
 
         setUser({ id: user!.id, role: user!.role });
 
-        toast({
-          title: '✅ Credencial válida!',
-          description: 'Seu acesso foi autorizado com sucesso',
-        });
-
         reset();
 
         router.push('/dono-de-negocio/app');

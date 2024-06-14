@@ -30,6 +30,7 @@ type GetByIdOutput = {
     id: string;
     firstName: string;
     lastName: string;
+    hasActiveSubscription: boolean;
   } | null;
   code: 'SUCCESS' | 'INVALID_ID' | 'UNEXPECTED_ERROR';
 };
@@ -150,6 +151,7 @@ export const useBusinessOwner = () => {
           id: data[0].id,
           firstName: data[0].first_name,
           lastName: data[0].last_name,
+          hasActiveSubscription: data[0].has_active_subscription,
         },
         code: 'SUCCESS',
       };

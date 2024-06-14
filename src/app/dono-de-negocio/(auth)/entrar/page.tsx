@@ -45,11 +45,6 @@ export default function AuthenticateAccountPage() {
       case 'SUCCESS': {
         setUser(data!);
 
-        toast({
-          title: '✅ Credencial válida!',
-          description: 'Seu acesso foi autorizado com sucesso',
-        });
-
         reset();
 
         router.push('/dono-de-negocio/app');

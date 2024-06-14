@@ -34,7 +34,15 @@ export const UserMenubar = () => {
 
         setFallback(initialLetterFromFirstName.concat(initialLetterFromLastName));
 
-        //TODO: show a toast if user has no active subscription
+        if (!data!.hasActiveSubscription) {
+          toast({
+            title: 'Ops! Assinatura expirada :(',
+            description: 'Entre em contato com o suporte para renovar a sua assinatura.',
+            variant: 'destructive',
+            titleClassName: 'text-white',
+            descriptionClassName: 'text-white',
+          });
+        }
         break;
       }
 
