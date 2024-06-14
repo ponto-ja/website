@@ -11,6 +11,10 @@ import { useFidelityProgram } from '@/hooks/use-fidelity-program';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { FidelityProgramFallback } from '../fidelity-program-fallback';
 import { formatScoreRate } from '@/helpers/format-score-rate';
+import { ScoreHistoryFallback } from './score-history-fallback';
+import { useScoreHistory } from '@/hooks/use-score-history';
+import { ScoreHistoryData } from '@/@types/score-history-data';
+import { Oval } from 'react-loader-spinner';
 
 type FidelityProgramSummaryData = {
   id: string;
@@ -31,9 +35,41 @@ export const PanelContent = () => {
         isLoadingGetSummaryByBusinessOwnerId: true,
       },
     });
-  const [showFallback, setShowFallback] = useState(false);
+  const { getByFidelityProgramId, isLoadingGetByFidelityProgramId } = useScoreHistory();
+  const [showFallback, setShowFallback] = useState({
+    fidelityProgram: false,
+    scoreHistory: false,
+  });
   const [fidelityProgramSummary, setFidelityProgramSummary] =
     useState<FidelityProgramSummaryData | null>(null);
+  const [scoreHistory, setScoreHistory] = useState<ScoreHistoryData[]>([]);
+
+  const handleFetchScoreHistory = async (fidelityProgramId: string) => {
+    const { data: scoreHistoryData, code: scoreHistoryCode } =
+      await getByFidelityProgramId(fidelityProgramId);
+
+    if (scoreHistoryCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description:
+          'Houve um erro no carregamento do histórico de pontuações, recarregue a página.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (scoreHistoryCode === 'NO_SCORE_HISTORY') {
+      setShowFallback((state) => ({
+        ...state,
+        scoreHistory: true,
+      }));
+      return;
+    }
+
+    setScoreHistory(scoreHistoryData!);
+  };
 
   const handleFetchFidelityProgramSummary = async () => {
     const { data, code } = await getSummaryByBusinessOwnerId(user.id!);
@@ -51,13 +87,19 @@ export const PanelContent = () => {
           createdAt: data!.createdAt,
         });
 
+        //TODO: call function to fetch score history
+        await handleFetchScoreHistory(data!.id);
+
         //TODO: save fidelity program on global state
         //TODO: call function to fetch score history
         break;
       }
 
       case 'NOT_FIDELITY_PROGRAM_CREATED': {
-        setShowFallback(true);
+        setShowFallback((state) => ({
+          ...state,
+          fidelityProgram: true,
+        }));
         break;
       }
 
@@ -87,7 +129,7 @@ export const PanelContent = () => {
     }
   }, [user]);
 
-  if (showFallback) return <FidelityProgramFallback />;
+  if (showFallback.fidelityProgram) return <FidelityProgramFallback />;
 
   return (
     <PageLoading isLoading={isLoadingGetSummaryByBusinessOwnerId}>
@@ -105,6 +147,7 @@ export const PanelContent = () => {
               : 0
           }
           onRegisterParticipant={onRegisterParticipant}
+          onRegisterScore={() => handleFetchScoreHistory(fidelityProgramSummary!.id)}
         />
       </div>
 
@@ -146,9 +189,28 @@ export const PanelContent = () => {
             Histórico de pontuações
           </p>
         </div>
+        <p className="font-inter font-normal text-gray-500 text-sm">
+          Os 10 últimos cadastros de pontos no programa
+        </p>
 
         <div className="w-full flex flex-col mt-6 space-y-5">
-          <ScoreHistory />
+          {isLoadingGetByFidelityProgramId && (
+            <div className="w-full flex justify-center">
+              <Oval
+                visible={true}
+                height="38"
+                width="38"
+                color="#4c1d95"
+                ariaLabel="oval-loading"
+                secondaryColor="#c4b5fd"
+                strokeWidth={4}
+              />
+            </div>
+          )}
+          {showFallback.scoreHistory && <ScoreHistoryFallback />}
+          {scoreHistory.map((history) => (
+            <ScoreHistory key={history.id} {...history} />
+          ))}
         </div>
       </div>
     </PageLoading>

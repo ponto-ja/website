@@ -37,7 +37,7 @@ export const useParticipant = () => {
 
       const { data } = await supabase
         .from('scores')
-        .select('id, score, participants!inner(id, first_name, last_name)')
+        .select('id, score, participant:participants!inner(id, first_name, last_name)')
         .eq('fidelity_program_id', fidelityProgramId)
         .eq('participants.phone_number', phoneNumber);
 
@@ -48,7 +48,7 @@ export const useParticipant = () => {
         };
       }
 
-      const participant = data[0].participants as unknown as Record<string, string>;
+      const participant = data[0].participant as unknown as Record<string, string>;
 
       return {
         data: {

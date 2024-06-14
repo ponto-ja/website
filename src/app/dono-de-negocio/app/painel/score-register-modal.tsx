@@ -34,12 +34,14 @@ type ScoreRegisterModalProps = {
   fidelityProgramId: string;
   scoreRate: number;
   onRegisterParticipant: () => void;
+  onRegisterScore: () => void;
 };
 
 export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
   fidelityProgramId,
   scoreRate,
   onRegisterParticipant,
+  onRegisterScore,
 }) => {
   const { toast } = useToast();
   const [isParticipantNotFound, setIsParticipantNotFound] = useState<boolean | null>(
@@ -253,6 +255,8 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     });
 
     reset();
+
+    onRegisterScore();
 
     setOpen(false);
   };
