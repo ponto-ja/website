@@ -14,6 +14,8 @@ import { useFidelityProgramStore } from '@/store/fidelity-program-store';
 import { ParticipantsFallback } from './participants-fallback';
 import { mask } from '@/helpers/mask';
 import { Oval } from 'react-loader-spinner';
+import { useReward } from '@/hooks/use-reward';
+import { RewardData } from '@/@types/reward-data';
 
 const ONE_SECOND = 1000;
 
@@ -35,12 +37,24 @@ export const ParticipantsContent = () => {
       isLoadingFindByFidelityProgramId: true,
     },
   });
+  const {
+    findByFidelityProgramId: findRewardsByFidelityProgramId,
+    isLoadingFindByFidelityProgramId: isLoadingFindRewardsByFidelityProgramId,
+  } = useReward({
+    initialState: {
+      isLoadingFindByFidelityProgramId: true,
+    },
+  });
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [showFallback, setShowFallback] = useState({
     fidelityProgram: false,
     participants: false,
   });
   const [phoneNumber, setPhoneNumber] = useState<string | null>();
+  const [rewards, setRewards] = useState<RewardData[]>([]);
+
+  const isLoading =
+    isLoadingFindByFidelityProgramId || isLoadingFindRewardsByFidelityProgramId;
 
   const handleFetchParticipants = async () => {
     const { data, code } = await findByFidelityProgramId(fidelityProgram.id!);
@@ -72,7 +86,7 @@ export const ParticipantsContent = () => {
           titleClassName: 'text-white',
           descriptionClassName: 'text-white',
         });
-        return;
+        break;
       }
     }
   };
@@ -107,10 +121,29 @@ export const ParticipantsContent = () => {
     }
   };
 
+  const handleFetchRewards = async () => {
+    const { code, data } = await findRewardsByFidelityProgramId(fidelityProgram.id!);
+
+    if (code === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description:
+          'Houve um erro no carregamento das recompensas, recarregue a página.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    setRewards(data!);
+  };
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (fidelityProgram.id !== null) {
         handleFetchParticipants();
+        handleFetchRewards();
       } else {
         setShowFallback((state) => ({
           ...state,
@@ -145,7 +178,7 @@ export const ParticipantsContent = () => {
     );
 
   return (
-    <PageLoading isLoading={isLoadingFindByFidelityProgramId}>
+    <PageLoading isLoading={isLoading}>
       <div className="w-full flex items-center justify-end">
         <RegisterParticipantModal
           onRegisterParticipant={() => handleFetchParticipants()}
@@ -203,7 +236,11 @@ export const ParticipantsContent = () => {
                 <ParticipantsFallback text="Sem resultados para o telefone informado." />
               )}
               {participants.map((participant) => (
-                <ParticipantInfoModal key={participant.id} participant={participant} />
+                <ParticipantInfoModal
+                  key={participant.id}
+                  participant={participant}
+                  rewards={rewards}
+                />
               ))}
             </>
           )}

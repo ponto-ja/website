@@ -22,9 +22,18 @@ type RegisterOutput = {
   code: 'CREATED' | 'UNEXPECTED_ERROR';
 };
 
+type GetByParticipantIdOutput = {
+  data: {
+    id: string;
+    score: number;
+  } | null;
+  code: 'SCORE_FOUND' | 'SCORE_NOT_FOUND' | 'UNEXPECTED_ERROR';
+};
+
 export const useScore = () => {
   const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
   const [isLoadingRegister, setIsLoadingRegister] = useState(false);
+  const [isLoadingGetByParticipantId, setIsLoadingGetByParticipantId] = useState(false);
 
   const update = async ({ id, score }: UpdateInput): Promise<UpdateOutput> => {
     try {
@@ -94,10 +103,47 @@ export const useScore = () => {
     }
   };
 
+  const getByParticipantId = async (
+    participantId: string,
+  ): Promise<GetByParticipantIdOutput> => {
+    try {
+      setIsLoadingGetByParticipantId(true);
+
+      const { data } = await supabase
+        .from('scores')
+        .select('id, score')
+        .eq('participant_id', participantId);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'SCORE_NOT_FOUND',
+        };
+      }
+
+      return {
+        data: {
+          id: data[0].id,
+          score: data[0].score,
+        },
+        code: 'SCORE_FOUND',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingGetByParticipantId(false);
+    }
+  };
+
   return {
     isLoadingUpdate,
     isLoadingRegister,
+    isLoadingGetByParticipantId,
     update,
     register,
+    getByParticipantId,
   };
 };
