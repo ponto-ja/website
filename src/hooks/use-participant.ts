@@ -10,6 +10,7 @@ type ParticipantHookProps = {
     isLoadingRegister?: boolean;
     isLoadingFindByFidelityProgramId?: boolean;
     isLoadingGetByPhoneNumber?: boolean;
+    isLoadingFindByPhoneNumberAndFidelityProgramId?: boolean;
   };
 };
 
@@ -54,6 +55,21 @@ type GetByPhoneNumberOutput = {
   code: 'PARTICIPANT_FOUND' | 'PARTICIPANT_NOT_FOUND' | 'UNEXPECTED_ERROR';
 };
 
+type FindByPhoneNumberAndFidelityProgramIdInput = {
+  phoneNumber: string;
+  fidelityProgramId: string;
+};
+
+type FindByPhoneNumberAndFidelityProgramIdOutput = {
+  data:
+    | (Omit<ParticipantData, 'score'> & {
+        phoneNumber: string;
+        createdAt: string;
+      })[]
+    | null;
+  code: 'PARTICIPANTS_FOUND' | 'PARTICIPANTS_NOT_FOUND' | 'UNEXPECTED_ERROR';
+};
+
 export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
   const [
     isLoadingGetByPhoneNumberAndFidelityProgramId,
@@ -67,6 +83,10 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
   const [isLoadingGetByPhoneNumber, setIsLoadingGetByPhoneNumber] = useState(
     initialState?.isLoadingGetByPhoneNumber ?? false,
   );
+  const [
+    isLoadingFindByPhoneNumberAndFidelityProgramId,
+    setIsLoadingFindByPhoneNumberAndFidelityProgramId,
+  ] = useState(initialState?.isLoadingFindByPhoneNumberAndFidelityProgramId ?? false);
 
   const getByPhoneNumberAndFidelityProgramId = async ({
     phoneNumber,
@@ -234,14 +254,64 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
     }
   };
 
+  const findByPhoneNumberAndFidelityProgramId = async ({
+    phoneNumber,
+    fidelityProgramId,
+  }: FindByPhoneNumberAndFidelityProgramIdInput): Promise<FindByPhoneNumberAndFidelityProgramIdOutput> => {
+    try {
+      setIsLoadingFindByPhoneNumberAndFidelityProgramId(true);
+
+      const { data } = await supabase
+        .from('scores')
+        .select(
+          'id, score, participant:participants!inner(id, first_name, last_name, phone_number, created_at)',
+        )
+        .eq('fidelity_program_id', fidelityProgramId)
+        .eq('participant.phone_number', phoneNumber);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'PARTICIPANTS_NOT_FOUND',
+        };
+      }
+
+      const participants = data.map((item) => {
+        const participant = item.participant as unknown as Record<string, string>;
+
+        return {
+          id: participant.id,
+          firstName: participant.first_name,
+          lastName: participant.last_name,
+          phoneNumber: participant.phone_number,
+          createdAt: dayjs(participant.created_at).format('DD/MM/YYYY'),
+        };
+      });
+
+      return {
+        data: participants,
+        code: 'PARTICIPANTS_FOUND',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingFindByPhoneNumberAndFidelityProgramId(false);
+    }
+  };
+
   return {
     isLoadingGetByPhoneNumberAndFidelityProgramId,
     isLoadingRegister,
     isLoadingFindByFidelityProgramId,
     isLoadingGetByPhoneNumber,
+    isLoadingFindByPhoneNumberAndFidelityProgramId,
     getByPhoneNumberAndFidelityProgramId,
     register,
     findByFidelityProgramId,
     getByPhoneNumber,
+    findByPhoneNumberAndFidelityProgramId,
   };
 };
