@@ -16,12 +16,23 @@ import { Participant as ParticipantProps } from './participants-content';
 import { mask } from '@/helpers/mask';
 import { useScore } from '@/hooks/use-score';
 import { useToast } from '@/components/ui/toast/use-toast';
-import { Oval } from 'react-loader-spinner';
+import { Oval, ThreeDots } from 'react-loader-spinner';
 import { RewardData } from '@/@types/reward-data';
+import { useUserStore } from '@/store/user-store';
+import { useBusinessOwner } from '@/hooks/use-business-owner';
+import { useScoreHistory } from '@/hooks/use-score-history';
+import { useFidelityProgramStore } from '@/store/fidelity-program-store';
+import { ScoreOperation } from '@/enums/score-operation';
+import { useRewardHistory } from '@/hooks/use-reward-history';
 
 type ParticipantInfoModalProps = {
   participant: ParticipantProps;
   rewards: RewardData[];
+};
+
+type ScoreData = {
+  id: string;
+  score: number;
 };
 
 export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
@@ -29,20 +40,42 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
   rewards,
 }) => {
   const { toast } = useToast();
-  const { getByParticipantId, isLoadingGetByParticipantId } = useScore();
+  const { user } = useUserStore();
+  const { fidelityProgram } = useFidelityProgramStore();
+  const { checkSubscription, isLoadingCheckSubscription } = useBusinessOwner();
+  const {
+    getByParticipantId,
+    isLoadingGetByParticipantId,
+    update: updateScore,
+    isLoadingUpdate: isLoadingUpdateScore,
+  } = useScore();
+  const {
+    register: registerScoreHistory,
+    isLoadingRegister: isLoadingRegisterScoreHistory,
+  } = useScoreHistory();
+  const {
+    register: registerRewardHistory,
+    isLoadingRegister: isLoadingRegisterRewardHistory,
+  } = useRewardHistory();
   const [open, setOpen] = useState(false);
-  const [score, setScore] = useState<number | null>(null);
-  const [selectedRewardId, setSelectedRewardId] = useState<string | null>(null);
+  const [score, setScore] = useState<ScoreData | null>(null);
+  const [selectedReward, setSelectedReward] = useState<RewardData | null>(null);
 
+  const isLoading =
+    isLoadingCheckSubscription ||
+    isLoadingGetByParticipantId ||
+    isLoadingUpdateScore ||
+    isLoadingRegisterScoreHistory ||
+    isLoadingRegisterRewardHistory;
   const hasSufficientScore =
-    score === null ? true : rewards.some((reward) => reward.scoreNeeded <= score);
+    score === null ? true : rewards.some((reward) => reward.scoreNeeded <= score.score);
 
   const handleFetchScore = async () => {
     const { code, data } = await getByParticipantId(participant.id);
 
     switch (code) {
       case 'SCORE_FOUND': {
-        setScore(data!.score);
+        setScore(data!);
         break;
       }
 
@@ -64,26 +97,145 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
   const handleSelectReward = (reward: RewardData) => {
     if (!hasSufficientScore) return;
 
-    if (reward.id === selectedRewardId) {
-      setSelectedRewardId(null);
+    if (reward.id === selectedReward?.id) {
+      setSelectedReward(null);
       return;
     }
 
-    if (reward.scoreNeeded <= score!) {
-      setSelectedRewardId(reward.id);
+    if (reward.scoreNeeded <= score!.score) {
+      setSelectedReward(reward);
     }
   };
 
-  //TODO: * [ VALIDAR SE DONO TEM ASSINATURA ATIVA ] * >>>>>>>>>>>>>>>>
+  const handleExchangeScore = async () => {
+    const { data: subscriptionData, code: subscriptionCode } = await checkSubscription(
+      user.id!,
+    );
+
+    if (subscriptionCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro na troca de pontos, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (subscriptionCode === 'SUCCESS' && !subscriptionData!.hasActiveSubscription) {
+      toast({
+        title: 'Ops! Assinatura expirada :(',
+        description: 'Entre em contato com o suporte para renovar a sua assinatura.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    const { code: scoreCode, data: scoreData } = await getByParticipantId(participant.id);
+
+    if (['SCORE_NOT_FOUND', 'UNEXPECTED_ERROR'].includes(scoreCode)) {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro na troca de pontos, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (scoreData!.score < selectedReward!.scoreNeeded) {
+      toast({
+        title:
+          'O participante não possui pontos suficientes para ganhar essa recompensa.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    const newScoreValue = score!.score - selectedReward!.scoreNeeded;
+
+    const { code: updateScoreCode } = await updateScore({
+      id: score!.id,
+      score: newScoreValue,
+    });
+
+    if (updateScoreCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro na troca de pontos, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    const { code: registerScoreHistoryCode } = await registerScoreHistory({
+      fidelityProgramId: fidelityProgram.id!,
+      participantId: participant.id,
+      operation: ScoreOperation.SPENDING,
+      score: newScoreValue,
+    });
+
+    if (registerScoreHistoryCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro na troca de pontos, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    const { code: registerRewardHistoryCode } = await registerRewardHistory({
+      name: selectedReward!.name,
+      scoreNeeded: selectedReward!.scoreNeeded,
+      description: selectedReward!.description || null,
+      fidelityProgramId: fidelityProgram.id!,
+      participantId: participant.id,
+    });
+
+    if (registerRewardHistoryCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro na troca de pontos, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    toast({
+      title: '✅ Troca de pontos realizada com sucesso.',
+    });
+
+    setOpen(false);
+
+    setSelectedReward(null);
+    setScore(null);
+  };
+
+  const handleCloseModal = () => {
+    setOpen((state) => !state);
+    setSelectedReward(null);
+  };
 
   useEffect(() => {
-    if (participant.id) {
+    if (participant.id && score === null) {
       handleFetchScore();
     }
-  }, [participant]);
+  }, [participant, score]);
 
   return (
-    <Dialog open={open} onOpenChange={(value) => setOpen(value)}>
+    <Dialog open={open} onOpenChange={handleCloseModal}>
       <DialogTrigger>
         <Participant {...participant} />
       </DialogTrigger>
@@ -117,7 +269,7 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
           <p className="font-inter font-medium text-base text-gray-500 text-center">
             Saldo atual do participante
           </p>
-          {isLoadingGetByParticipantId && (
+          {isLoadingGetByParticipantId && !isLoading && (
             <div className="w-full flex justify-center mt-2">
               <Oval
                 visible={true}
@@ -130,9 +282,9 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
               />
             </div>
           )}
-          {!isLoadingGetByParticipantId && score !== null && (
+          {score !== null && (
             <p className="font-inter font-semibold text-3xl text-gray-500 text-center mt-2">
-              {score}
+              {score.score}
             </p>
           )}
         </div>
@@ -147,7 +299,7 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
               <Reward.Root
                 key={reward.id}
                 className="cursor-pointer"
-                selected={selectedRewardId === reward.id}
+                selected={selectedReward?.id === reward.id}
                 onClick={() => handleSelectReward(reward)}>
                 <Reward.Name>{reward.name}</Reward.Name>
                 <Reward.ScoreRate>
@@ -180,10 +332,24 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
             Fechar
           </Button>
           <Button
-            disabled={!hasSufficientScore || !selectedRewardId}
-            className="bg-violet-900 px-3 py-2 font-inter font-normal text-sm text-white flex items-center gap-2">
-            <HandCoins strokeWidth={2} color="#FFFFFF" size={20} />
-            Trocar pontos
+            disabled={!hasSufficientScore || !selectedReward || isLoading}
+            onClick={handleExchangeScore}
+            className="min-w-[145px] bg-violet-900 px-3 py-2 font-inter font-normal text-sm text-white items-center gap-2 flex justify-center">
+            {isLoading ? (
+              <ThreeDots
+                height="20"
+                width="40"
+                radius="9"
+                color="#fafafa"
+                ariaLabel="three-dots-loading"
+                visible={true}
+              />
+            ) : (
+              <>
+                <HandCoins strokeWidth={2} color="#FFFFFF" size={20} />
+                Trocar pontos
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>
