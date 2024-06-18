@@ -16,6 +16,8 @@ import { useUserStore } from '@/store/user-store';
 import { useBusinessOwner } from '@/hooks/use-business-owner';
 import { useToast } from './ui/toast/use-toast';
 import { useFidelityProgramStore } from '@/store/fidelity-program-store';
+import { UserRole } from '@/enums/user-role';
+import { useParticipant } from '@/hooks/use-participant';
 
 export const UserMenubar = () => {
   const router = useRouter();
@@ -24,10 +26,18 @@ export const UserMenubar = () => {
   const { toast } = useToast();
   const { user, clearUser } = useUserStore();
   const { clearFidelityProgram } = useFidelityProgramStore();
-  const { getById, isLoadingGetById } = useBusinessOwner();
+  const {
+    getById: getBusinessOwnerById,
+    isLoadingGetById: isLoadingGetBusinessOwnerById,
+  } = useBusinessOwner();
+  const { getById: getParticipantById, isLoadingGetById: isLoadingGetParticipantById } =
+    useParticipant();
 
   const handleFetchUser = async () => {
-    const { data, code } = await getById(user.id!);
+    const { data, code } =
+      user.role === UserRole.BUSINESS_OWNER
+        ? await getBusinessOwnerById(user.id!)
+        : await getParticipantById(user.id!);
 
     switch (code) {
       case 'SUCCESS': {
@@ -36,14 +46,19 @@ export const UserMenubar = () => {
 
         setFallback(initialLetterFromFirstName.concat(initialLetterFromLastName));
 
-        if (!data!.hasActiveSubscription) {
-          toast({
-            title: 'Ops! Assinatura expirada :(',
-            description: 'Entre em contato com o suporte para renovar a sua assinatura.',
-            variant: 'destructive',
-            titleClassName: 'text-white',
-            descriptionClassName: 'text-white',
-          });
+        if (user.role === UserRole.BUSINESS_OWNER) {
+          const businessData = data as Record<string, string>;
+
+          if (!businessData?.hasActiveSubscription) {
+            toast({
+              title: 'Ops! Assinatura expirada :(',
+              description:
+                'Entre em contato com o suporte para renovar a sua assinatura.',
+              variant: 'destructive',
+              titleClassName: 'text-white',
+              descriptionClassName: 'text-white',
+            });
+          }
         }
         break;
       }
@@ -65,7 +80,13 @@ export const UserMenubar = () => {
   const handleSignOut = async () => {
     clearUser();
     clearFidelityProgram();
-    router.push('/dono-de-negocio/entrar');
+
+    const baseUrl = {
+      [UserRole.BUSINESS_OWNER]: '/dono-de-negocio',
+      [UserRole.PARTICIPANT]: '/cliente',
+    }[user.role!];
+
+    router.push(`${baseUrl}/entrar`);
   };
 
   useEffect(() => {
@@ -76,7 +97,7 @@ export const UserMenubar = () => {
 
   if ((!user.id && !user.role) || !pathname.includes('/app')) return null;
 
-  if (!user.id || isLoadingGetById)
+  if (!user.id || isLoadingGetBusinessOwnerById || isLoadingGetParticipantById)
     return <div className="w-[44px] h-[44px] rounded-full bg-violet-300 animate-pulse" />;
 
   return (

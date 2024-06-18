@@ -1,7 +1,77 @@
+'use client';
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { Button } from '@/components/button';
+import { InputField } from '@/components/input-field';
+import {
+  AuthenticateAccountData,
+  authenticateAccountSchema,
+} from './authenticate-account-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ThreeDots } from 'react-loader-spinner';
+import { useParticipant } from '@/hooks/use-participant';
+import { useToast } from '@/components/ui/toast/use-toast';
+import { useUserStore } from '@/store/user-store';
+import { mask } from '@/helpers/mask';
 
 export default function SignInPage() {
+  const router = useRouter();
+  const {
+    handleSubmit,
+    clearErrors,
+    setError,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<AuthenticateAccountData>({
+    resolver: zodResolver(authenticateAccountSchema),
+    defaultValues: {
+      phoneNumber: '',
+    },
+  });
+  const { toast } = useToast();
+  const { authenticate, isLoadingAuthenticate } = useParticipant();
+  const { setUser } = useUserStore();
+
+  const handleAuthenticateAccount: SubmitHandler<AuthenticateAccountData> = async ({
+    phoneNumber,
+  }) => {
+    clearErrors('root');
+
+    const { data, code } = await authenticate({
+      phoneNumber: mask.onlyNumbers(phoneNumber),
+    });
+
+    switch (code) {
+      case 'SUCCESS': {
+        setUser(data!);
+
+        reset();
+
+        router.push('/cliente/app');
+        break;
+      }
+
+      case 'INVALID_CREDENTIAL': {
+        setError('phoneNumber', { message: 'Credencial inválida' });
+        break;
+      }
+
+      case 'UNEXPECTED_ERROR': {
+        toast({
+          title: 'Ops! Erro inesperado :(',
+          description: 'Houve um erro na autenticação da sua conta, tente novamente.',
+          variant: 'destructive',
+          titleClassName: 'text-white',
+          descriptionClassName: 'text-white',
+        });
+        break;
+      }
+    }
+  };
+
   return (
     <main className="w-full flex flex-col items-center max-[400px]:px-3 max-[400px]:my-[30px]">
       <div>
@@ -13,20 +83,39 @@ export default function SignInPage() {
         </p>
       </div>
 
-      <form className="mt-10 max-w-[360px] w-full">
-        <div className="flex flex-col">
-          <label htmlFor="phone" className="font-inter font-medium text-gray-700">
-            Telefone*
-          </label>
-          <input
-            type="text"
-            id="phone"
-            placeholder="Digite seu número de telefone"
-            className="w-full rounded border-[1px] border-gray-200 py-2 px-3 mt-1 outline-violet-900 font-inter font-normal text-gray-700 placeholder:font-light"
-          />
-        </div>
-        <Button className="bg-violet-900 w-full mt-4 py-2 font-inter text-sm text-white">
-          Acessar conta
+      <form
+        className="mt-10 max-w-[360px] w-full"
+        onSubmit={handleSubmit(handleAuthenticateAccount)}>
+        <Controller
+          control={control}
+          name="phoneNumber"
+          render={({ field: { value, onChange } }) => (
+            <InputField
+              type="text"
+              placeholder="Digite seu número de telefone"
+              label="Telefone"
+              required={true}
+              error={errors.phoneNumber?.message}
+              value={value}
+              onChange={({ target }) => onChange(mask.phoneNumber(target.value))}
+            />
+          )}
+        />
+        <Button
+          disabled={isLoadingAuthenticate}
+          className="bg-violet-900 w-full mt-4 py-2 font-inter text-sm text-white flex justify-center">
+          {isLoadingAuthenticate ? (
+            <ThreeDots
+              height="20"
+              width="40"
+              radius="9"
+              color="#fafafa"
+              ariaLabel="three-dots-loading"
+              visible={true}
+            />
+          ) : (
+            'Acessar conta'
+          )}
         </Button>
         <p className="font-inter font-normal text-sm text-gray-600 text-center mt-4">
           Ainda não possui uma conta?{' '}

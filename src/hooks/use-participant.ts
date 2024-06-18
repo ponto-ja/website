@@ -3,6 +3,7 @@ import { supabase } from '@/infra/database/supabase/client';
 import { ParticipantData } from '@/@types/participant-data';
 import cuid from 'cuid';
 import dayjs from 'dayjs';
+import { UserRole } from '@/enums/user-role';
 
 type ParticipantHookProps = {
   initialState?: {
@@ -11,6 +12,8 @@ type ParticipantHookProps = {
     isLoadingFindByFidelityProgramId?: boolean;
     isLoadingGetByPhoneNumber?: boolean;
     isLoadingFindByPhoneNumberAndFidelityProgramId?: boolean;
+    isLoadingAuthenticate?: boolean;
+    isLoadingGetById?: boolean;
   };
 };
 
@@ -33,6 +36,18 @@ type RegisterInput = {
 type RegisterOutput = {
   data: Pick<ParticipantData, 'id'> | null;
   code: 'CREATED' | 'UNEXPECTED_ERROR';
+};
+
+type AuthenticateInput = {
+  phoneNumber: string;
+};
+
+type AuthenticateOutput = {
+  data: {
+    id: string;
+    role: keyof typeof UserRole;
+  } | null;
+  code: 'SUCCESS' | 'INVALID_CREDENTIAL' | 'UNEXPECTED_ERROR';
 };
 
 type FindByFidelityProgramIdOutput = {
@@ -70,6 +85,15 @@ type FindByPhoneNumberAndFidelityProgramIdOutput = {
   code: 'PARTICIPANTS_FOUND' | 'PARTICIPANTS_NOT_FOUND' | 'UNEXPECTED_ERROR';
 };
 
+type GetByIdOutput = {
+  data: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  } | null;
+  code: 'SUCCESS' | 'INVALID_ID' | 'UNEXPECTED_ERROR';
+};
+
 export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
   const [
     isLoadingGetByPhoneNumberAndFidelityProgramId,
@@ -87,6 +111,12 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
     isLoadingFindByPhoneNumberAndFidelityProgramId,
     setIsLoadingFindByPhoneNumberAndFidelityProgramId,
   ] = useState(initialState?.isLoadingFindByPhoneNumberAndFidelityProgramId ?? false);
+  const [isLoadingAuthenticate, setIsLoadingAuthenticate] = useState(
+    initialState?.isLoadingAuthenticate ?? false,
+  );
+  const [isLoadingGetById, setIsLoadingGetById] = useState(
+    initialState?.isLoadingGetById ?? false,
+  );
 
   const getByPhoneNumberAndFidelityProgramId = async ({
     phoneNumber,
@@ -170,6 +200,41 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
       };
     } finally {
       setIsLoadingRegister(false);
+    }
+  };
+
+  const authenticate = async ({
+    phoneNumber,
+  }: AuthenticateInput): Promise<AuthenticateOutput> => {
+    try {
+      setIsLoadingAuthenticate(true);
+
+      const { data } = await supabase
+        .from('participants')
+        .select('*')
+        .eq('phone_number', phoneNumber);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'INVALID_CREDENTIAL',
+        };
+      }
+
+      return {
+        data: {
+          id: data[0].id,
+          role: 'PARTICIPANT',
+        },
+        code: 'SUCCESS',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingAuthenticate(false);
     }
   };
 
@@ -302,16 +367,51 @@ export const useParticipant = ({ initialState }: ParticipantHookProps = {}) => {
     }
   };
 
+  const getById = async (id: string): Promise<GetByIdOutput> => {
+    try {
+      setIsLoadingGetById(true);
+
+      const { data } = await supabase.from('participants').select('*').eq('id', id);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'INVALID_ID',
+        };
+      }
+
+      return {
+        data: {
+          id: data[0].id,
+          firstName: data[0].first_name,
+          lastName: data[0].last_name,
+        },
+        code: 'SUCCESS',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingGetById(false);
+    }
+  };
+
   return {
     isLoadingGetByPhoneNumberAndFidelityProgramId,
     isLoadingRegister,
+    isLoadingAuthenticate,
     isLoadingFindByFidelityProgramId,
     isLoadingGetByPhoneNumber,
     isLoadingFindByPhoneNumberAndFidelityProgramId,
+    isLoadingGetById,
     getByPhoneNumberAndFidelityProgramId,
     register,
+    authenticate,
     findByFidelityProgramId,
     getByPhoneNumber,
     findByPhoneNumberAndFidelityProgramId,
+    getById,
   };
 };
