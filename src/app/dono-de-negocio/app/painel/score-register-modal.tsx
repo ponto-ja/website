@@ -112,7 +112,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     isLoadingRegisterRelationBetweenFidelityProgramAndParticipant;
   const scorePerAmount = ['', '0,00'].includes(amountValue)
     ? 0
-    : Math.trunc(Number(amountValue.replace(',', '.')) / scoreRate);
+    : Math.trunc(Number(amountValue.replace(/\./g, '').replace(/,/, '.')) / scoreRate);
 
   const handleRegisterScore: SubmitHandler<RegisterScoreWithParticipantData> = async (
     formData,

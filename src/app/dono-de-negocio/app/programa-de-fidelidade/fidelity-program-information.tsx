@@ -44,9 +44,9 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
     resolver: zodResolver(updateFidelityProgramSchema),
     defaultValues: {
       name: fidelityProgramDetails.name,
-      scoreRate: formatScoreRate(Number(fidelityProgramDetails.scoreRate), false).replace(
-        'R$ ',
-        '',
+      scoreRate: formatScoreRate(
+        Number(fidelityProgramDetails.scoreRate.replace(/\./g, '').replace(/,/, '.')),
+        false,
       ),
     },
   });
