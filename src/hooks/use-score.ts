@@ -22,6 +22,11 @@ type RegisterOutput = {
   code: 'CREATED' | 'UNEXPECTED_ERROR';
 };
 
+type getByParticipantIdInput = {
+  participantId: string;
+  fidelityProgramId: string;
+};
+
 type GetByParticipantIdOutput = {
   data: {
     id: string;
@@ -103,16 +108,18 @@ export const useScore = () => {
     }
   };
 
-  const getByParticipantId = async (
-    participantId: string,
-  ): Promise<GetByParticipantIdOutput> => {
+  const getByParticipantId = async ({
+    participantId,
+    fidelityProgramId,
+  }: getByParticipantIdInput): Promise<GetByParticipantIdOutput> => {
     try {
       setIsLoadingGetByParticipantId(true);
 
       const { data } = await supabase
         .from('scores')
         .select('id, score')
-        .eq('participant_id', participantId);
+        .eq('participant_id', participantId)
+        .eq('fidelity_program_id', fidelityProgramId);
 
       if (!data?.[0]) {
         return {

@@ -71,7 +71,10 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
     score === null ? true : rewards.some((reward) => reward.scoreNeeded <= score.score);
 
   const handleFetchScore = async () => {
-    const { code, data } = await getByParticipantId(participant.id);
+    const { code, data } = await getByParticipantId({
+      participantId: participant.id,
+      fidelityProgramId: fidelityProgram.id!,
+    });
 
     switch (code) {
       case 'SCORE_FOUND': {
@@ -134,7 +137,10 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
       return;
     }
 
-    const { code: scoreCode, data: scoreData } = await getByParticipantId(participant.id);
+    const { code: scoreCode, data: scoreData } = await getByParticipantId({
+      participantId: participant.id,
+      fidelityProgramId: fidelityProgram.id!,
+    });
 
     if (['SCORE_NOT_FOUND', 'UNEXPECTED_ERROR'].includes(scoreCode)) {
       toast({
