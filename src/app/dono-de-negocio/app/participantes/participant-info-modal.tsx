@@ -164,11 +164,9 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
       return;
     }
 
-    const newScoreValue = score!.score - selectedReward!.scoreNeeded;
-
     const { code: updateScoreCode } = await updateScore({
       id: score!.id,
-      score: newScoreValue,
+      score: score!.score - selectedReward!.scoreNeeded,
     });
 
     if (updateScoreCode === 'UNEXPECTED_ERROR') {
@@ -186,7 +184,7 @@ export const ParticipantInfoModal: FC<ParticipantInfoModalProps> = ({
       fidelityProgramId: fidelityProgram.id!,
       participantId: participant.id,
       operation: ScoreOperation.SPENDING,
-      score: newScoreValue,
+      score: selectedReward!.scoreNeeded,
     });
 
     if (registerScoreHistoryCode === 'UNEXPECTED_ERROR') {
