@@ -14,6 +14,9 @@ import { useUserStore } from '@/store/user-store';
 import { useReward } from '@/hooks/use-reward';
 import { RewardData } from '@/@types/reward-data';
 import { Oval } from 'react-loader-spinner';
+import { useRewardHistory } from '@/hooks/use-reward-history';
+import { RewardHistoryData } from '@/@types/reward-history-data';
+import { RewardHistoryFallback } from './reward-history-fallback';
 
 type FidelityProgramContentProps = {
   fidelityProgramId: string;
@@ -43,11 +46,67 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
     },
   });
   const { findByFidelityProgramId, isLoadingFindByFidelityProgramId } = useReward();
-  const [showFallback, setShowFallback] = useState(false);
+  const {
+    findByFidelityProgramIdAndParticipantId,
+    isLoadingFindByFidelityProgramIdAndParticipantId,
+  } = useRewardHistory();
+  const [showFallback, setShowFallback] = useState({
+    fidelityProgram: false,
+    rewardHistory: false,
+  });
   const [fidelityProgram, setFidelityProgram] = useState<FidelityProgramData | null>(
     null,
   );
   const [rewards, setRewards] = useState<RewardData[]>([]);
+  const [rewardHistory, setRewardHistory] = useState<RewardHistoryData[]>([]);
+
+  const handleFetchAvailableRewards = async () => {
+    const { code: rewardsCode, data: rewardsData } =
+      await findByFidelityProgramId(fidelityProgramId);
+
+    if (rewardsCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description:
+          'Houve um erro no carregamento das recompensas disponíveis, recarregue a página.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    setRewards(rewardsData!);
+  };
+
+  const handleFetchRewardHistory = async () => {
+    const { code: rewardHistoryCode, data: rewardHistoryData } =
+      await findByFidelityProgramIdAndParticipantId({
+        fidelityProgramId,
+        participantId: user.id!,
+      });
+
+    if (rewardHistoryCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description:
+          'Houve um erro no carregamento do histórico de recompensas, recarregue a página.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (rewardHistoryCode === 'NOT_FOUND_HISTORY') {
+      setShowFallback((state) => ({
+        ...state,
+        rewardHistory: true,
+      }));
+    } else if (rewardHistoryCode === 'FOUND_HISTORY') {
+      setRewardHistory(rewardHistoryData!);
+    }
+  };
 
   const handleFetchFidelityProgram = async () => {
     const { code, data } = await getByFidelityProgramIdAndParticipantId({
@@ -58,31 +117,18 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
     switch (code) {
       case 'FOUND_FIDELITY_PROGRAM': {
         setFidelityProgram(data!);
-        const { code: rewardsCode, data: rewardsData } = await findByFidelityProgramId(
-          data!.id,
-        );
 
-        if (rewardsCode === 'UNEXPECTED_ERROR') {
-          toast({
-            title: 'Ops! Erro inesperado :(',
-            description:
-              'Houve um erro no carregamento das recompensas disponíveis, recarregue a página.',
-            variant: 'destructive',
-            titleClassName: 'text-white',
-            descriptionClassName: 'text-white',
-          });
-          break;
-        }
+        await Promise.all([handleFetchAvailableRewards(), handleFetchRewardHistory()]);
 
-        setRewards(rewardsData!);
-
-        //TODO: Fetch reward history
         //TODO: Fetch score history
         break;
       }
 
       case 'NOT_FOUND_FIDELITY_PROGRAM': {
-        setShowFallback(true);
+        setShowFallback((state) => ({
+          ...state,
+          fidelityProgram: true,
+        }));
         break;
       }
 
@@ -105,7 +151,7 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
     }
   }, [fidelityProgramId, user]);
 
-  if (showFallback) return <FidelityProgramsFallback />;
+  if (showFallback.fidelityProgram) return <FidelityProgramsFallback />;
 
   return (
     <PageLoading isLoading={isLoadingGetByFidelityProgramIdAndParticipantId}>
@@ -187,15 +233,33 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
           <p className="font-inter font-normal text-sm text-gray-600">
             Recompensas que você já ganhou dentro do programa
           </p>
-          <div className="mt-3 flex items-center flex-wrap gap-2">
-            <Reward.Root className="max-w-[400px]">
-              <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
-              <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
-              <Reward.Description>
-                Breve descrição sobre a recompensa ...
-              </Reward.Description>
-            </Reward.Root>
+          {isLoadingFindByFidelityProgramIdAndParticipantId && (
+            <div className="w-full flex justify-center mt-4">
+              <Oval
+                visible={true}
+                height="38"
+                width="38"
+                color="#4c1d95"
+                ariaLabel="oval-loading"
+                secondaryColor="#c4b5fd"
+                strokeWidth={4}
+              />
+            </div>
+          )}
+          <div className="mt-3 flex items-stretch flex-wrap gap-2">
+            {rewardHistory.map((reward) => (
+              <Reward.Root className="max-w-[400px]" key={reward.id}>
+                <Reward.Name>{reward.name}</Reward.Name>
+                <Reward.ScoreRate>
+                  Pontuação necessária: {reward.scoreNeeded}
+                </Reward.ScoreRate>
+                {reward.description && (
+                  <Reward.Description>{reward.description}</Reward.Description>
+                )}
+              </Reward.Root>
+            ))}
           </div>
+          {showFallback.rewardHistory && <RewardHistoryFallback />}
         </div>
 
         <div className="mt-10 w-full">
