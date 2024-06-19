@@ -11,6 +11,7 @@ type FidelityProgramHookProps = {
     isLoadingGetDetailsByBusinessOwnerId?: boolean;
     isLoadingUpdate?: boolean;
     isLoadingFindByParticipantId?: boolean;
+    isLoadingGetByFidelityProgramIdAndParticipantId?: boolean;
   };
 };
 
@@ -64,6 +65,24 @@ type FindByParticipantIdOutput = {
   code: 'FOUND_FIDELITY_PROGRAMS' | 'NOT_FOUND_FIDELITY_PROGRAMS' | 'UNEXPECTED_ERROR';
 };
 
+type GetByFidelityProgramIdAndParticipantIdInput = {
+  fidelityProgramId: string;
+  participantId: string;
+};
+
+type GetByFidelityProgramIdAndParticipantIdOutput = {
+  data: {
+    id: string;
+    name: string;
+    numberOfRewards: number;
+    numberOfActiveDays: number;
+    scoreRate: number;
+    totalScore: number;
+    createdAt: string;
+  } | null;
+  code: 'FOUND_FIDELITY_PROGRAM' | 'NOT_FOUND_FIDELITY_PROGRAM' | 'UNEXPECTED_ERROR';
+};
+
 export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = {}) => {
   const [isLoadingGetSummaryByBusinessOwnerId, setIsLoadingGetSummaryByBusinessOwnerId] =
     useState(initialState?.isLoadingGetSummaryByBusinessOwnerId ?? false);
@@ -78,6 +97,10 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
   const [isLoadingFindByParticipantId, setIsLoadingFindByParticipantId] = useState(
     initialState?.isLoadingFindByParticipantId ?? false,
   );
+  const [
+    isLoadingGetByFidelityProgramIdAndParticipantId,
+    setIsLoadingGetByFidelityProgramIdAndParticipantId,
+  ] = useState(initialState?.isLoadingGetByFidelityProgramIdAndParticipantId ?? false);
 
   const getSummaryByBusinessOwnerId = async (
     businessOwnerId: string,
@@ -270,9 +293,10 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
       const { data } = await supabase
         .from('fidelity_programs')
         .select(
-          'id, name, score_rate, created_at, pivot_fidelity_programs_participants!inner(participant_id)',
+          'id, name, score_rate, created_at, pivot_fidelity_programs_participants!inner()',
         )
         .eq('pivot_fidelity_programs_participants.participant_id', participantId)
+        .is('pivot_fidelity_programs_participants.deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (!data?.[0]) {
@@ -303,16 +327,93 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
     }
   };
 
+  const getByFidelityProgramIdAndParticipantId = async ({
+    fidelityProgramId,
+    participantId,
+  }: GetByFidelityProgramIdAndParticipantIdInput): Promise<GetByFidelityProgramIdAndParticipantIdOutput> => {
+    try {
+      setIsLoadingGetByFidelityProgramIdAndParticipantId(true);
+
+      const { data } = await supabase
+        .from('fidelity_programs')
+        .select('*')
+        .eq('id', fidelityProgramId);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'NOT_FOUND_FIDELITY_PROGRAM',
+        };
+      }
+
+      const [fidelityProgramData] = data;
+
+      const { data: scoreData } = await supabase
+        .from('scores')
+        .select('score')
+        .eq('fidelity_program_id', fidelityProgramId)
+        .eq('participant_id', participantId);
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'UNEXPECTED_ERROR',
+        };
+      }
+
+      const { count: numberOfRewards } = await supabase
+        .from('rewards')
+        .select('*', { count: 'exact', head: true })
+        .eq('fidelity_program_id', fidelityProgramData.id)
+        .is('deleted_at', null);
+
+      if (numberOfRewards === null) {
+        return {
+          data: null,
+          code: 'UNEXPECTED_ERROR',
+        };
+      }
+
+      const differenceBetweenDatesInDays = dayjs()
+        .startOf('date')
+        .diff(dayjs(fidelityProgramData.created_at).startOf('date'), 'days');
+
+      const createdAt = dayjs(fidelityProgramData.created_at).format('DD/MM/YYYY');
+
+      return {
+        data: {
+          id: fidelityProgramData.id,
+          name: fidelityProgramData.name,
+          numberOfRewards,
+          scoreRate: fidelityProgramData.score_rate,
+          totalScore: scoreData?.[0].score,
+          numberOfActiveDays: differenceBetweenDatesInDays,
+          createdAt,
+        },
+        code: 'FOUND_FIDELITY_PROGRAM',
+      };
+    } catch (error) {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingGetByFidelityProgramIdAndParticipantId(false);
+    }
+  };
+
   return {
     isLoadingGetSummaryByBusinessOwnerId,
     isLoadingGetDetailsByBusinessOwnerId,
     isLoadingRegister,
     isLoadingUpdate,
     isLoadingFindByParticipantId,
+    isLoadingGetByFidelityProgramIdAndParticipantId,
     getSummaryByBusinessOwnerId,
     getDetailsByBusinessOwnerId,
     register,
     update,
     findByParticipantId,
+    getByFidelityProgramIdAndParticipantId,
   };
 };
