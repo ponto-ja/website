@@ -11,6 +11,9 @@ import { useToast } from '@/components/ui/toast/use-toast';
 import { FidelityProgramsFallback } from '../fidelity-programs-fallback';
 import { formatScoreRate } from '@/helpers/format-score-rate';
 import { useUserStore } from '@/store/user-store';
+import { useReward } from '@/hooks/use-reward';
+import { RewardData } from '@/@types/reward-data';
+import { Oval } from 'react-loader-spinner';
 
 type FidelityProgramContentProps = {
   fidelityProgramId: string;
@@ -39,10 +42,12 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
       isLoadingGetByFidelityProgramIdAndParticipantId: true,
     },
   });
+  const { findByFidelityProgramId, isLoadingFindByFidelityProgramId } = useReward();
   const [showFallback, setShowFallback] = useState(false);
   const [fidelityProgram, setFidelityProgram] = useState<FidelityProgramData | null>(
     null,
   );
+  const [rewards, setRewards] = useState<RewardData[]>([]);
 
   const handleFetchFidelityProgram = async () => {
     const { code, data } = await getByFidelityProgramIdAndParticipantId({
@@ -53,7 +58,24 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
     switch (code) {
       case 'FOUND_FIDELITY_PROGRAM': {
         setFidelityProgram(data!);
-        //TODO: Fetch rewards
+        const { code: rewardsCode, data: rewardsData } = await findByFidelityProgramId(
+          data!.id,
+        );
+
+        if (rewardsCode === 'UNEXPECTED_ERROR') {
+          toast({
+            title: 'Ops! Erro inesperado :(',
+            description:
+              'Houve um erro no carregamento das recompensas disponíveis, recarregue a página.',
+            variant: 'destructive',
+            titleClassName: 'text-white',
+            descriptionClassName: 'text-white',
+          });
+          break;
+        }
+
+        setRewards(rewardsData!);
+
         //TODO: Fetch reward history
         //TODO: Fetch score history
         break;
@@ -78,7 +100,7 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
   };
 
   useEffect(() => {
-    if (fidelityProgramId && user) {
+    if (fidelityProgramId && user.id) {
       handleFetchFidelityProgram();
     }
   }, [fidelityProgramId, user]);
@@ -130,21 +152,31 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
           <p className="font-inter font-normal text-sm text-gray-600">
             Recompensas que pode ganhar dentro do programa
           </p>
-          <div className="mt-2 flex items-center flex-wrap gap-2">
-            <Reward.Root className="max-w-[400px]">
-              <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
-              <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
-              <Reward.Description>
-                Breve descrição sobre a recompensa ...
-              </Reward.Description>
-            </Reward.Root>
-            <Reward.Root className="max-w-[400px]">
-              <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
-              <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
-              <Reward.Description>
-                Breve descrição sobre a recompensa ...
-              </Reward.Description>
-            </Reward.Root>
+          {isLoadingFindByFidelityProgramId && (
+            <div className="w-full flex justify-center mt-4">
+              <Oval
+                visible={true}
+                height="38"
+                width="38"
+                color="#4c1d95"
+                ariaLabel="oval-loading"
+                secondaryColor="#c4b5fd"
+                strokeWidth={4}
+              />
+            </div>
+          )}
+          <div className="mt-3 flex items-stretch flex-wrap gap-2">
+            {rewards.map((reward) => (
+              <Reward.Root className="max-w-[400px]" key={reward.id}>
+                <Reward.Name>{reward.name}</Reward.Name>
+                <Reward.ScoreRate>
+                  Pontuação necessária: {reward.scoreNeeded}
+                </Reward.ScoreRate>
+                {reward.description && (
+                  <Reward.Description>{reward.description}</Reward.Description>
+                )}
+              </Reward.Root>
+            ))}
           </div>
         </div>
 
@@ -155,7 +187,7 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
           <p className="font-inter font-normal text-sm text-gray-600">
             Recompensas que você já ganhou dentro do programa
           </p>
-          <div className="mt-2 flex items-center flex-wrap gap-2">
+          <div className="mt-3 flex items-center flex-wrap gap-2">
             <Reward.Root className="max-w-[400px]">
               <Reward.Name>Desconto de 50% na próxima compra</Reward.Name>
               <Reward.ScoreRate>Pontuação necessária: 100</Reward.ScoreRate>
