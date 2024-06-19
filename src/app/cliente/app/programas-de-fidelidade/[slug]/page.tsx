@@ -1,3 +1,5 @@
+'use client';
+
 import { FidelityProgramCardInfo } from '@/components/fidelity-program-card-info';
 import { CircleDollarSign, Gift, HandCoins } from 'lucide-react';
 import { ScoreHistory } from './score-history';
@@ -10,27 +12,27 @@ export default function FidelityProgramPage() {
         Programa da Farmácia
       </h2>
 
-      <div className="max-w-[932px] w-full overflow-auto flex items-center gap-4 mt-4">
+      <div className="max-w-[1440px] w-full overflow-auto flex items-center gap-4 mt-4">
         <FidelityProgramCardInfo
           title="Total de pontos"
           icon={CircleDollarSign}
           value="120"
           description="Seu total de pontos no programa"
-          className="min-w-[300px]"
+          className="min-w-[300px] max-w-[300px]"
         />
         <FidelityProgramCardInfo
           title="Taxa de pontuação"
           icon={HandCoins}
           value="R$ 10,00"
           description="RS 10,00 em compra = +1 ponto"
-          className="min-w-[300px]"
+          className="min-w-[300px] max-w-[300px]"
         />
         <FidelityProgramCardInfo
           title="Recompensas"
           icon={Gift}
           value="1"
           description="Opções de recompensas"
-          className="min-w-[300px]"
+          className="min-w-[300px] max-w-[300px]"
         />
       </div>
 

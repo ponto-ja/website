@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '@/infra/database/supabase/client';
 import dayjs from 'dayjs';
 import cuid from 'cuid';
+import { FidelityProgramData } from '@/@types/fidelity-program-data';
 
 type FidelityProgramHookProps = {
   initialState?: {
@@ -9,6 +10,7 @@ type FidelityProgramHookProps = {
     isLoadingRegister?: boolean;
     isLoadingGetDetailsByBusinessOwnerId?: boolean;
     isLoadingUpdate?: boolean;
+    isLoadingFindByParticipantId?: boolean;
   };
 };
 
@@ -57,6 +59,11 @@ type UpdateOutput = {
   code: 'UPDATED' | 'UNEXPECTED_ERROR';
 };
 
+type FindByParticipantIdOutput = {
+  data: FidelityProgramData[] | null;
+  code: 'FOUND_FIDELITY_PROGRAMS' | 'NOT_FOUND_FIDELITY_PROGRAMS' | 'UNEXPECTED_ERROR';
+};
+
 export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = {}) => {
   const [isLoadingGetSummaryByBusinessOwnerId, setIsLoadingGetSummaryByBusinessOwnerId] =
     useState(initialState?.isLoadingGetSummaryByBusinessOwnerId ?? false);
@@ -67,6 +74,9 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
     useState(initialState?.isLoadingGetDetailsByBusinessOwnerId ?? false);
   const [isLoadingUpdate, setIsLoadingUpdate] = useState(
     initialState?.isLoadingUpdate ?? false,
+  );
+  const [isLoadingFindByParticipantId, setIsLoadingFindByParticipantId] = useState(
+    initialState?.isLoadingFindByParticipantId ?? false,
   );
 
   const getSummaryByBusinessOwnerId = async (
@@ -251,14 +261,58 @@ export const useFidelityProgram = ({ initialState }: FidelityProgramHookProps = 
     }
   };
 
+  const findByParticipantId = async (
+    participantId: string,
+  ): Promise<FindByParticipantIdOutput> => {
+    try {
+      setIsLoadingFindByParticipantId(true);
+
+      const { data } = await supabase
+        .from('fidelity_programs')
+        .select(
+          'id, name, score_rate, created_at, pivot_fidelity_programs_participants!inner(participant_id)',
+        )
+        .eq('pivot_fidelity_programs_participants.participant_id', participantId)
+        .order('created_at', { ascending: false });
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'NOT_FOUND_FIDELITY_PROGRAMS',
+        };
+      }
+
+      const fidelityPrograms = data.map((fidelityProgram) => ({
+        id: fidelityProgram.id,
+        name: fidelityProgram.name,
+        scoreRate: fidelityProgram.score_rate,
+        createdAt: dayjs(fidelityProgram.created_at).format('DD/MM/YYYY'),
+      }));
+
+      return {
+        data: fidelityPrograms,
+        code: 'FOUND_FIDELITY_PROGRAMS',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingFindByParticipantId(false);
+    }
+  };
+
   return {
     isLoadingGetSummaryByBusinessOwnerId,
     isLoadingGetDetailsByBusinessOwnerId,
     isLoadingRegister,
     isLoadingUpdate,
+    isLoadingFindByParticipantId,
     getSummaryByBusinessOwnerId,
     getDetailsByBusinessOwnerId,
     register,
     update,
+    findByParticipantId,
   };
 };
