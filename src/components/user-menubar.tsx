@@ -135,10 +135,14 @@ export const UserMenubar = () => {
             <NotebookPen color="#374151" size={20} strokeWidth={1.8} />
             Dados do Perfil
           </MenubarItem> */}
-          <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
-            <Headset color="#374151" size={20} strokeWidth={1.8} />
-            Falar com Suporte
-          </MenubarItem>
+          <Link
+            target="_blank"
+            href="https://api.whatsapp.com/send/?phone=5593992423295&text=Ol%C3%A1%2C+eu+gostaria+de+saber+mais+sobre+a+sua+plataforma.">
+            <MenubarItem className="focus:bg-violet-200 hover:bg-violet-200 font-inter font-medium text-sm text-gray-700 flex items-center gap-2">
+              <Headset color="#374151" size={20} strokeWidth={1.8} />
+              Falar com Suporte
+            </MenubarItem>
+          </Link>
 
           <MenubarSeparator />
 
