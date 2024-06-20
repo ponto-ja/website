@@ -9,6 +9,7 @@ type ScoreHistoryHookProps = {
   initialState?: {
     isLoadingRegister?: boolean;
     isLoadingFindByFidelityProgramId?: boolean;
+    isLoadingFindByFidelityProgramIdAndParticipantId?: boolean;
   };
 };
 
@@ -28,12 +29,26 @@ type GetByFidelityProgramOutput = {
   code: 'SUCCESS' | 'NO_SCORE_HISTORY' | 'UNEXPECTED_ERROR';
 };
 
+type FindByFidelityProgramIdAndParticipantIdInput = {
+  fidelityProgramId: string;
+  participantId: string;
+};
+
+type FindByFidelityProgramIdAndParticipantIdOutput = {
+  data: Omit<ScoreHistoryData, 'participant'>[] | null;
+  code: 'FOUND_HISTORY' | 'NOT_FOUND_HISTORY' | 'UNEXPECTED_ERROR';
+};
+
 export const useScoreHistory = ({ initialState }: ScoreHistoryHookProps = {}) => {
   const [isLoadingRegister, setIsLoadingRegister] = useState(
     initialState?.isLoadingRegister ?? false,
   );
   const [isLoadingFindByFidelityProgramId, setIsLoadingFindByFidelityProgramId] =
     useState(initialState?.isLoadingFindByFidelityProgramId ?? false);
+  const [
+    isLoadingFindByFidelityProgramIdAndParticipantId,
+    setIsLoadingFindByFidelityProgramIdAndParticipantId,
+  ] = useState(initialState?.isLoadingFindByFidelityProgramIdAndParticipantId ?? false);
 
   const register = async ({
     fidelityProgramId,
@@ -125,10 +140,56 @@ export const useScoreHistory = ({ initialState }: ScoreHistoryHookProps = {}) =>
     }
   };
 
+  const findByFidelityProgramIdAndParticipantId = async ({
+    fidelityProgramId,
+    participantId,
+  }: FindByFidelityProgramIdAndParticipantIdInput): Promise<FindByFidelityProgramIdAndParticipantIdOutput> => {
+    try {
+      setIsLoadingFindByFidelityProgramIdAndParticipantId(true);
+
+      const { data } = await supabase
+        .from('score_history')
+        .select(
+          'id, score, operation, created_at, participant:participants!inner(first_name, last_name, phone_number)',
+        )
+        .eq('fidelity_program_id', fidelityProgramId)
+        .eq('participant_id', participantId)
+        .order('created_at', { ascending: false });
+
+      if (!data?.[0]) {
+        return {
+          data: null,
+          code: 'NOT_FOUND_HISTORY',
+        };
+      }
+
+      const scoreHistory = data.map((history) => ({
+        id: history.id,
+        score: history.score,
+        operation: history.operation,
+        createdAt: dayjs(history.created_at).format('DD/MM/YYYY'),
+      }));
+
+      return {
+        data: scoreHistory,
+        code: 'FOUND_HISTORY',
+      };
+    } catch {
+      return {
+        data: null,
+        code: 'UNEXPECTED_ERROR',
+      };
+    } finally {
+      setIsLoadingFindByFidelityProgramIdAndParticipantId(false);
+    }
+  };
+
   return {
     isLoadingRegister,
     isLoadingFindByFidelityProgramId,
+    isLoadingFindByFidelityProgramIdAndParticipantId,
     register,
     findByFidelityProgramId,
+    findByFidelityProgramIdAndParticipantId,
   };
 };

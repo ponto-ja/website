@@ -16,7 +16,9 @@ import { RewardData } from '@/@types/reward-data';
 import { Oval } from 'react-loader-spinner';
 import { useRewardHistory } from '@/hooks/use-reward-history';
 import { RewardHistoryData } from '@/@types/reward-history-data';
-import { RewardHistoryFallback } from './reward-history-fallback';
+import { HistoryFallback } from './history-fallback';
+import { useScoreHistory } from '@/hooks/use-score-history';
+import { ScoreHistoryData } from '@/@types/score-history-data';
 
 type FidelityProgramContentProps = {
   fidelityProgramId: string;
@@ -50,21 +52,30 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
     findByFidelityProgramIdAndParticipantId,
     isLoadingFindByFidelityProgramIdAndParticipantId,
   } = useRewardHistory();
+  const {
+    findByFidelityProgramIdAndParticipantId:
+      findScoreHistoryByFidelityProgramIdAndParticipantId,
+    isLoadingFindByFidelityProgramIdAndParticipantId:
+      isLoadingFindScoreHistoryByFidelityProgramIdAndParticipantId,
+  } = useScoreHistory();
   const [showFallback, setShowFallback] = useState({
     fidelityProgram: false,
     rewardHistory: false,
+    scoreHistory: false,
   });
   const [fidelityProgram, setFidelityProgram] = useState<FidelityProgramData | null>(
     null,
   );
   const [rewards, setRewards] = useState<RewardData[]>([]);
   const [rewardHistory, setRewardHistory] = useState<RewardHistoryData[]>([]);
+  const [scoreHistory, setScoreHistory] = useState<
+    Omit<ScoreHistoryData, 'participant'>[]
+  >([]);
 
   const handleFetchAvailableRewards = async () => {
-    const { code: rewardsCode, data: rewardsData } =
-      await findByFidelityProgramId(fidelityProgramId);
+    const { code, data } = await findByFidelityProgramId(fidelityProgramId);
 
-    if (rewardsCode === 'UNEXPECTED_ERROR') {
+    if (code === 'UNEXPECTED_ERROR') {
       toast({
         title: 'Ops! Erro inesperado :(',
         description:
@@ -76,35 +87,74 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
       return;
     }
 
-    setRewards(rewardsData!);
+    setRewards(data!);
   };
 
   const handleFetchRewardHistory = async () => {
-    const { code: rewardHistoryCode, data: rewardHistoryData } =
-      await findByFidelityProgramIdAndParticipantId({
-        fidelityProgramId,
-        participantId: user.id!,
-      });
+    const { code, data } = await findByFidelityProgramIdAndParticipantId({
+      fidelityProgramId,
+      participantId: user.id!,
+    });
 
-    if (rewardHistoryCode === 'UNEXPECTED_ERROR') {
-      toast({
-        title: 'Ops! Erro inesperado :(',
-        description:
-          'Houve um erro no carregamento do histórico de recompensas, recarregue a página.',
-        variant: 'destructive',
-        titleClassName: 'text-white',
-        descriptionClassName: 'text-white',
-      });
-      return;
+    switch (code) {
+      case 'FOUND_HISTORY': {
+        setRewardHistory(data!);
+        break;
+      }
+
+      case 'NOT_FOUND_HISTORY': {
+        setShowFallback((state) => ({
+          ...state,
+          rewardHistory: true,
+        }));
+        break;
+      }
+
+      case 'UNEXPECTED_ERROR': {
+        toast({
+          title: 'Ops! Erro inesperado :(',
+          description:
+            'Houve um erro no carregamento do histórico de recompensas, recarregue a página.',
+          variant: 'destructive',
+          titleClassName: 'text-white',
+          descriptionClassName: 'text-white',
+        });
+        break;
+      }
     }
+  };
 
-    if (rewardHistoryCode === 'NOT_FOUND_HISTORY') {
-      setShowFallback((state) => ({
-        ...state,
-        rewardHistory: true,
-      }));
-    } else if (rewardHistoryCode === 'FOUND_HISTORY') {
-      setRewardHistory(rewardHistoryData!);
+  const handleFetchScoreHistory = async () => {
+    const { code, data } = await findScoreHistoryByFidelityProgramIdAndParticipantId({
+      fidelityProgramId,
+      participantId: user.id!,
+    });
+
+    switch (code) {
+      case 'FOUND_HISTORY': {
+        setScoreHistory(data!);
+        break;
+      }
+
+      case 'NOT_FOUND_HISTORY': {
+        setShowFallback((state) => ({
+          ...state,
+          scoreHistory: true,
+        }));
+        break;
+      }
+
+      case 'UNEXPECTED_ERROR': {
+        toast({
+          title: 'Ops! Erro inesperado :(',
+          description:
+            'Houve um erro no carregamento do histórico de pontos, recarregue a página.',
+          variant: 'destructive',
+          titleClassName: 'text-white',
+          descriptionClassName: 'text-white',
+        });
+        break;
+      }
     }
   };
 
@@ -118,9 +168,11 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
       case 'FOUND_FIDELITY_PROGRAM': {
         setFidelityProgram(data!);
 
-        await Promise.all([handleFetchAvailableRewards(), handleFetchRewardHistory()]);
-
-        //TODO: Fetch score history
+        await Promise.all([
+          handleFetchAvailableRewards(),
+          handleFetchRewardHistory(),
+          handleFetchScoreHistory(),
+        ]);
         break;
       }
 
@@ -196,7 +248,7 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
             Recompensas disponíveis
           </p>
           <p className="font-inter font-normal text-sm text-gray-600">
-            Recompensas que pode ganhar dentro do programa
+            Recompensas que você pode ganhar dentro do programa
           </p>
           {isLoadingFindByFidelityProgramId && (
             <div className="w-full flex justify-center mt-4">
@@ -259,7 +311,9 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
               </Reward.Root>
             ))}
           </div>
-          {showFallback.rewardHistory && <RewardHistoryFallback />}
+          {showFallback.rewardHistory && (
+            <HistoryFallback title="Você ainda não ganhou alguma recompensa desse programa." />
+          )}
         </div>
 
         <div className="mt-10 w-full">
@@ -269,10 +323,27 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
           <p className="font-inter font-normal text-sm text-gray-600">
             Seu histórico de pontos dentro do programa
           </p>
+          {isLoadingFindScoreHistoryByFidelityProgramIdAndParticipantId && (
+            <div className="w-full flex justify-center mt-4">
+              <Oval
+                visible={true}
+                height="38"
+                width="38"
+                color="#4c1d95"
+                ariaLabel="oval-loading"
+                secondaryColor="#c4b5fd"
+                strokeWidth={4}
+              />
+            </div>
+          )}
           <div className="w-full mt-3 max-w-[600px] flex flex-col">
-            <ScoreHistory />
-            <ScoreHistory />
+            {scoreHistory.map((history, index) => (
+              <ScoreHistory key={history.id} index={index + 1} {...history} />
+            ))}
           </div>
+          {showFallback.scoreHistory && (
+            <HistoryFallback title="Você ainda não teve pontos cadastrados dentro do programa." />
+          )}
         </div>
       </div>
     </PageLoading>
