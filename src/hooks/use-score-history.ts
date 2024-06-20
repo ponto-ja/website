@@ -8,7 +8,7 @@ import { ScoreHistoryData } from '@/@types/score-history-data';
 type ScoreHistoryHookProps = {
   initialState?: {
     isLoadingRegister?: boolean;
-    isLoadingGetByFidelityProgramId?: boolean;
+    isLoadingFindByFidelityProgramId?: boolean;
   };
 };
 
@@ -32,9 +32,8 @@ export const useScoreHistory = ({ initialState }: ScoreHistoryHookProps = {}) =>
   const [isLoadingRegister, setIsLoadingRegister] = useState(
     initialState?.isLoadingRegister ?? false,
   );
-  const [isLoadingGetByFidelityProgramId, setIsLoadingGetByFidelityProgramId] = useState(
-    initialState?.isLoadingGetByFidelityProgramId ?? false,
-  );
+  const [isLoadingFindByFidelityProgramId, setIsLoadingFindByFidelityProgramId] =
+    useState(initialState?.isLoadingFindByFidelityProgramId ?? false);
 
   const register = async ({
     fidelityProgramId,
@@ -74,11 +73,11 @@ export const useScoreHistory = ({ initialState }: ScoreHistoryHookProps = {}) =>
     }
   };
 
-  const getByFidelityProgramId = async (
+  const findByFidelityProgramId = async (
     fidelityProgramId: string,
   ): Promise<GetByFidelityProgramOutput> => {
     try {
-      setIsLoadingGetByFidelityProgramId(true);
+      setIsLoadingFindByFidelityProgramId(true);
 
       const { data } = await supabase
         .from('score_history')
@@ -122,14 +121,14 @@ export const useScoreHistory = ({ initialState }: ScoreHistoryHookProps = {}) =>
         code: 'UNEXPECTED_ERROR',
       };
     } finally {
-      setIsLoadingGetByFidelityProgramId(false);
+      setIsLoadingFindByFidelityProgramId(false);
     }
   };
 
   return {
     isLoadingRegister,
-    isLoadingGetByFidelityProgramId,
+    isLoadingFindByFidelityProgramId,
     register,
-    getByFidelityProgramId,
+    findByFidelityProgramId,
   };
 };

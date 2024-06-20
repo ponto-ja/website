@@ -37,7 +37,7 @@ export const PanelContent = () => {
         isLoadingGetSummaryByBusinessOwnerId: true,
       },
     });
-  const { getByFidelityProgramId, isLoadingGetByFidelityProgramId } = useScoreHistory();
+  const { findByFidelityProgramId, isLoadingFindByFidelityProgramId } = useScoreHistory();
   const [showFallback, setShowFallback] = useState({
     fidelityProgram: false,
     scoreHistory: false,
@@ -48,7 +48,7 @@ export const PanelContent = () => {
 
   const handleFetchScoreHistory = async (fidelityProgramId: string) => {
     const { data: scoreHistoryData, code: scoreHistoryCode } =
-      await getByFidelityProgramId(fidelityProgramId);
+      await findByFidelityProgramId(fidelityProgramId);
 
     if (scoreHistoryCode === 'UNEXPECTED_ERROR') {
       toast({
@@ -196,7 +196,7 @@ export const PanelContent = () => {
         </p>
 
         <div className="w-full flex flex-col mt-6 space-y-5">
-          {isLoadingGetByFidelityProgramId && (
+          {isLoadingFindByFidelityProgramId && (
             <div className="w-full flex justify-center">
               <Oval
                 visible={true}
