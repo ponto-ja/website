@@ -185,7 +185,7 @@ export const FidelityProgramContent: FC<FidelityProgramContentProps> = ({
           <FidelityProgramCardInfo
             title="Dias ativos"
             icon={CalendarClock}
-            value="2"
+            value={String(fidelityProgram?.numberOfActiveDays)}
             description={`Criado em ${fidelityProgram?.createdAt}`}
             className="min-w-[300px] max-w-[300px]"
           />
