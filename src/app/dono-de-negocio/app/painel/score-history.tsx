@@ -34,7 +34,7 @@ export const ScoreHistory = ({
         </div>
       )}
       {operation === 'SPENDING' && (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 max-[500px]:flex-col max-[500px]:items-end max-[500px]:gap-1">
           <p className="min-w-[100px] text-center font-inter font-medium text-sm text-red-600 bg-red-200 py-1 px-[6px] rounded">
             -{score} {score === 1 ? 'ponto' : 'pontos'}
           </p>
