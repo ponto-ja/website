@@ -17,7 +17,8 @@ export const Footer = () => {
           </Link>
         </div>
         <Link
-          href="#"
+          href="https://api.whatsapp.com/send/?phone=5593992423295&text=Ol%C3%A1%2C+eu+gostaria+de+saber+mais+sobre+a+sua+plataforma."
+          target="_blank"
           className="bg-green-500 rounded-full w-6 h-6 flex pt-[2px] justify-center">
           <WhatsappIcon />
         </Link>
