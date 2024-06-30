@@ -21,6 +21,7 @@ import { useUserStore } from '@/store/user-store';
 import { mask } from '@/helpers/mask';
 import { RewardData } from '@/@types/reward-data';
 import { useFidelityProgramStore } from '@/store/fidelity-program-store';
+import { useBusinessOwner } from '@/hooks/use-business-owner';
 
 export default function CreateFidelityProgramPage() {
   const router = useRouter();
@@ -45,12 +46,16 @@ export default function CreateFidelityProgramPage() {
     isLoadingRegister: isLoadingRegisterFidelityProgram,
   } = useFidelityProgram();
   const { register: registerReward } = useReward();
+  const { checkSubscription, isLoadingCheckSubscription } = useBusinessOwner();
   const [rewards, setRewards] = useState<RewardData[]>([]);
   const [isRegisteringRewards, setIsRegisteringRewards] = useState(false);
 
   const scoreRateValue = watch('scoreRate');
 
-  const isLoading = isLoadingRegisterFidelityProgram || isRegisteringRewards;
+  const isLoading =
+    isLoadingRegisterFidelityProgram ||
+    isRegisteringRewards ||
+    isLoadingCheckSubscription;
 
   const handleRegisterFidelityProgram: SubmitHandler<
     RegisterFidelityProgramData
@@ -60,6 +65,32 @@ export default function CreateFidelityProgramPage() {
         title: 'Adicione pelo menos 1 recompensa.',
         variant: 'destructive',
         titleClassName: 'text-white',
+      });
+      return;
+    }
+
+    const { data: subscriptionData, code: subscriptionCode } = await checkSubscription(
+      user.id!,
+    );
+
+    if (subscriptionCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro no cadastro do programa, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (subscriptionCode === 'SUCCESS' && !subscriptionData!.hasActiveSubscription) {
+      toast({
+        title: 'Ops! Assinatura expirada :(',
+        description: 'Entre em contato com o suporte para renovar a sua assinatura.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
       });
       return;
     }

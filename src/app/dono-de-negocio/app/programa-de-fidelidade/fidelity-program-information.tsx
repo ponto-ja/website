@@ -19,6 +19,8 @@ import { formatScoreRate } from '@/helpers/format-score-rate';
 import { RewardData } from '@/@types/reward-data';
 import { useFidelityProgram } from '@/hooks/use-fidelity-program';
 import { useReward } from '@/hooks/use-reward';
+import { useBusinessOwner } from '@/hooks/use-business-owner';
+import { useUserStore } from '@/store/user-store';
 
 type FidelityProgramInformationProps = {
   fidelityProgramDetails: {
@@ -34,6 +36,7 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
   rewards: rewardsProps,
 }) => {
   const { toast } = useToast();
+  const { user } = useUserStore();
   const {
     register,
     handleSubmit,
@@ -54,6 +57,7 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
     update: updateFidelityProgram,
     isLoadingUpdate: isLoadingUpdateFidelityProgram,
   } = useFidelityProgram();
+  const { checkSubscription, isLoadingCheckSubscription } = useBusinessOwner();
   const {
     deleteRecord,
     isLoadingDeleteRecord,
@@ -66,6 +70,7 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
   const [rewardId, setRewardId] = useState<string | null>(null);
 
   const scoreRateValue = watch('scoreRate');
+  const isLoading = isLoadingUpdateFidelityProgram || isLoadingCheckSubscription;
 
   const handleUpdateFidelityProgramDetails: SubmitHandler<
     UpdateFidelityProgramData
@@ -75,6 +80,33 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
         title: 'Adicione pelo menos 1 recompensa',
         variant: 'destructive',
         titleClassName: 'text-white',
+      });
+      return;
+    }
+
+    const { data: subscriptionData, code: subscriptionCode } = await checkSubscription(
+      user.id!,
+    );
+
+    if (subscriptionCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description:
+          'Houve um erro na atualizaçao das informações do programa, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (subscriptionCode === 'SUCCESS' && !subscriptionData!.hasActiveSubscription) {
+      toast({
+        title: 'Ops! Assinatura expirada :(',
+        description: 'Entre em contato com o suporte para renovar a sua assinatura.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
       });
       return;
     }
@@ -113,6 +145,32 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
       return;
     }
 
+    const { data: subscriptionData, code: subscriptionCode } = await checkSubscription(
+      user.id!,
+    );
+
+    if (subscriptionCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro ao deletar a recompensa, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (subscriptionCode === 'SUCCESS' && !subscriptionData!.hasActiveSubscription) {
+      toast({
+        title: 'Ops! Assinatura expirada :(',
+        description: 'Entre em contato com o suporte para renovar a sua assinatura.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
     setRewardId(rewardId);
 
     const { code } = await deleteRecord(rewardId);
@@ -139,6 +197,32 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
   };
 
   const handleAddReward = async (reward: RewardData) => {
+    const { data: subscriptionData, code: subscriptionCode } = await checkSubscription(
+      user.id!,
+    );
+
+    if (subscriptionCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro ao cadastrar a recompensa, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (subscriptionCode === 'SUCCESS' && !subscriptionData!.hasActiveSubscription) {
+      toast({
+        title: 'Ops! Assinatura expirada :(',
+        description: 'Entre em contato com o suporte para renovar a sua assinatura.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
     const { data, code } = await registerReward({
       fidelityProgramId: fidelityProgramDetails.id,
       name: reward.name,
@@ -172,6 +256,32 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
   };
 
   const handleUpdateReward = async (reward: RewardData) => {
+    const { data: subscriptionData, code: subscriptionCode } = await checkSubscription(
+      user.id!,
+    );
+
+    if (subscriptionCode === 'UNEXPECTED_ERROR') {
+      toast({
+        title: 'Ops! Erro inesperado :(',
+        description: 'Houve um erro ao atualizar a recompensa, tente novamente.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
+    if (subscriptionCode === 'SUCCESS' && !subscriptionData!.hasActiveSubscription) {
+      toast({
+        title: 'Ops! Assinatura expirada :(',
+        description: 'Entre em contato com o suporte para renovar a sua assinatura.',
+        variant: 'destructive',
+        titleClassName: 'text-white',
+        descriptionClassName: 'text-white',
+      });
+      return;
+    }
+
     const { code } = await updateReward({
       id: reward.id,
       name: reward.name,
@@ -296,9 +406,9 @@ export const FidelityProgramInformation: FC<FidelityProgramInformationProps> = (
 
         <Button
           type="submit"
-          disabled={isLoadingUpdateFidelityProgram}
+          disabled={isLoading}
           className="max-w-[260px] w-full bg-violet-900 font-inter font-normal text-sm text-white mt-10 px-3 py-2 flex justify-center">
-          {isLoadingUpdateFidelityProgram ? (
+          {isLoading ? (
             <ThreeDots
               height="20"
               width="40"
