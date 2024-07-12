@@ -19,6 +19,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cookies-next": "^4.2.1",
+    "cpf-cnpj-validator": "^1.0.3",
     "cuid": "^3.0.0",
     "dayjs": "^1.11.11",
     "lucide-react": "^0.383.0",

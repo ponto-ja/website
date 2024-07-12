@@ -28,8 +28,23 @@ const phoneNumber = (input: string) => {
   return input;
 };
 
+const cnpj = (input: string) => {
+  input = input.replace(/\D/g, '');
+  input = input.replace(/^(\d{2})(\d)/, '$1.$2');
+  input = input.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+  input = input.replace(/\.(\d{3})(\d)/, '.$1/$2');
+  input = input.replace(/(\d{4})(\d)/, '$1-$2');
+
+  return input.substring(0, 18);
+};
+
+const clearCnpj = (input: string) =>
+  input.replaceAll('.', '').replace('/', '').replace('-', '');
+
 export const mask = {
   onlyNumbers,
   currency,
   phoneNumber,
+  cnpj,
+  clearCnpj,
 };

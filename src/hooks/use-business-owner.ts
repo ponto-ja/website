@@ -6,15 +6,20 @@ import { UserRole } from '@/enums/user-role';
 type RegisterBusinessOwnerInput = {
   firstName: string;
   lastName: string;
-  email: string;
+  companyIdentificationNumber: string;
+  phoneNumber: string;
 };
 
 type RegisterBusinessOwnerOutput = {
-  code: 'CREATED' | 'EMAIL_ALREADY_EXISTS' | 'UNEXPECTED_ERROR';
+  code:
+    | 'CREATED'
+    | 'COMPANY_IDENTIFICATION_NUMBER_ALREADY_EXISTS'
+    | 'PHONE_NUMBER_ALREADY_EXISTS'
+    | 'UNEXPECTED_ERROR';
 };
 
 type AuthenticateBusinessOwnerAccountInput = {
-  email: string;
+  companyIdentificationNumber: string;
 };
 
 type AuthenticateBusinessOwnerAccountOutput = {
@@ -51,21 +56,36 @@ export const useBusinessOwner = () => {
   const register = async ({
     firstName,
     lastName,
-    email,
+    companyIdentificationNumber,
+    phoneNumber,
   }: RegisterBusinessOwnerInput): Promise<RegisterBusinessOwnerOutput> => {
     try {
       setIsLoadingRegister(true);
 
-      const { count } = await supabase
+      const { count: countByCompanyIdentificationNumber } = await supabase
         .from('business_owners')
         .select('*', { count: 'exact', head: true })
-        .eq('email', email);
+        .eq('company_identification_number', companyIdentificationNumber);
 
-      const userExists = !!count;
+      const userExistsByCompanyIdentificationNumber =
+        !!countByCompanyIdentificationNumber;
 
-      if (userExists) {
+      if (userExistsByCompanyIdentificationNumber) {
         return {
-          code: 'EMAIL_ALREADY_EXISTS',
+          code: 'COMPANY_IDENTIFICATION_NUMBER_ALREADY_EXISTS',
+        };
+      }
+
+      const { count: countByPhoneNumber } = await supabase
+        .from('business_owners')
+        .select('*', { count: 'exact', head: true })
+        .eq('phone_number', phoneNumber);
+
+      const userExistsByPhoneNumber = !!countByPhoneNumber;
+
+      if (userExistsByPhoneNumber) {
+        return {
+          code: 'PHONE_NUMBER_ALREADY_EXISTS',
         };
       }
 
@@ -75,7 +95,8 @@ export const useBusinessOwner = () => {
           id: cuid(),
           first_name: firstName,
           last_name: lastName,
-          email,
+          phone_number: phoneNumber,
+          company_identification_number: companyIdentificationNumber,
           has_active_subscription: true,
         })
         .select();
@@ -99,7 +120,7 @@ export const useBusinessOwner = () => {
   };
 
   const authenticate = async ({
-    email,
+    companyIdentificationNumber,
   }: AuthenticateBusinessOwnerAccountInput): Promise<AuthenticateBusinessOwnerAccountOutput> => {
     try {
       setIsLoadingAuthenticate(true);
@@ -107,7 +128,7 @@ export const useBusinessOwner = () => {
       const { data } = await supabase
         .from('business_owners')
         .select('*')
-        .eq('email', email);
+        .eq('company_identification_number', companyIdentificationNumber);
 
       if (!data?.[0]) {
         return {

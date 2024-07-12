@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { ThreeDots } from 'react-loader-spinner';
 import { Button } from '@/components/button';
 import { InputField } from '@/components/input-field';
@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useBusinessOwner } from '@/hooks/use-business-owner';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { useUserStore } from '@/store/user-store';
+import { mask } from '@/helpers/mask';
 
 export default function RegisterAccountPage() {
   const router = useRouter();
@@ -20,13 +21,15 @@ export default function RegisterAccountPage() {
     setError,
     clearErrors,
     reset,
+    control,
     formState: { errors },
   } = useForm<RegisterAccountData>({
     resolver: zodResolver(registerAccountSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: '',
+      phoneNumber: '',
+      companyIdentificationNumber: '',
     },
   });
   const { toast } = useToast();
@@ -43,15 +46,23 @@ export default function RegisterAccountPage() {
   const handleRegisterBusinessOwnerAccount: SubmitHandler<RegisterAccountData> = async ({
     firstName,
     lastName,
-    email,
+    phoneNumber,
+    companyIdentificationNumber,
   }) => {
     clearErrors('root');
 
-    const { code } = await registerBusinessOwner({ firstName, lastName, email });
+    const { code } = await registerBusinessOwner({
+      firstName,
+      lastName,
+      phoneNumber: mask.onlyNumbers(phoneNumber),
+      companyIdentificationNumber: mask.clearCnpj(companyIdentificationNumber),
+    });
 
     switch (code) {
       case 'CREATED': {
-        const { data: user } = await authenticate({ email });
+        const { data: user } = await authenticate({
+          companyIdentificationNumber: mask.clearCnpj(companyIdentificationNumber),
+        });
 
         setUser({ id: user!.id, role: user!.role });
 
@@ -61,8 +72,13 @@ export default function RegisterAccountPage() {
         break;
       }
 
-      case 'EMAIL_ALREADY_EXISTS': {
-        setError('email', { message: 'E-mail já cadastrado' });
+      case 'PHONE_NUMBER_ALREADY_EXISTS': {
+        setError('phoneNumber', { message: 'Telefone já cadastrado' });
+        break;
+      }
+
+      case 'COMPANY_IDENTIFICATION_NUMBER_ALREADY_EXISTS': {
+        setError('companyIdentificationNumber', { message: 'CNPJ já cadastrado' });
         break;
       }
 
@@ -80,7 +96,7 @@ export default function RegisterAccountPage() {
   };
 
   return (
-    <main className="w-full flex flex-col items-center max-[400px]:px-3 max-[400px]:my-[30px]">
+    <main className="w-full flex flex-col items-center my-[60px] max-[400px]:px-3 max-[400px]:my-[30px]">
       <div>
         <h2 className="font-inter font-semibold text-2xl text-gray-800 text-center max-[400px]:text-[20px]">
           Criar Conta
@@ -110,13 +126,36 @@ export default function RegisterAccountPage() {
           error={errors.lastName?.message}
           {...register('lastName')}
         />
-        <InputField
-          type="email"
-          placeholder="Digite seu e-mail"
-          label="E-mail"
-          required={true}
-          error={errors.email?.message}
-          {...register('email')}
+        <Controller
+          control={control}
+          name="phoneNumber"
+          render={({ field: { value, onChange } }) => (
+            <InputField
+              type="text"
+              placeholder="Digite seu número de telefone"
+              label="Telefone"
+              required={true}
+              error={errors.phoneNumber?.message}
+              value={value}
+              onChange={({ target }) => onChange(mask.phoneNumber(target.value))}
+              rootClassName="mb-3"
+            />
+          )}
+        />
+        <Controller
+          control={control}
+          name="companyIdentificationNumber"
+          render={({ field: { value, onChange } }) => (
+            <InputField
+              type="text"
+              placeholder="Digite seu número de CPNJ"
+              label="CNPJ"
+              required={true}
+              error={errors.companyIdentificationNumber?.message}
+              value={value}
+              onChange={({ target }) => onChange(mask.cnpj(target.value))}
+            />
+          )}
         />
         <Button
           disabled={isLoading}

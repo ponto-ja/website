@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { cnpj } from 'cpf-cnpj-validator';
 
 export const authenticateAccountSchema = z.object({
-  email: z
+  companyIdentificationNumber: z
     .string({ required_error: 'Campo obrigatório' })
     .min(1, { message: 'Campo obrigatório' })
-    .email({ message: 'E-mail inválido' }),
+    .refine((input) => cnpj.isValid(input), { message: 'CPNJ inválido' }),
 });
 
 export type AuthenticateAccountData = z.infer<typeof authenticateAccountSchema>;

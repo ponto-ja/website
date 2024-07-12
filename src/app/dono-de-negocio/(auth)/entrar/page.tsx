@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { ThreeDots } from 'react-loader-spinner';
 import { Button } from '@/components/button';
 import { InputField } from '@/components/input-field';
@@ -14,20 +14,21 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/components/ui/toast/use-toast';
 import { useBusinessOwner } from '@/hooks/use-business-owner';
 import { useUserStore } from '@/store/user-store';
+import { mask } from '@/helpers/mask';
 
 export default function AuthenticateAccountPage() {
   const router = useRouter();
   const {
-    register,
     handleSubmit,
     clearErrors,
     setError,
     reset,
+    control,
     formState: { errors },
   } = useForm<AuthenticateAccountData>({
     resolver: zodResolver(authenticateAccountSchema),
     defaultValues: {
-      email: '',
+      companyIdentificationNumber: '',
     },
   });
   const { toast } = useToast();
@@ -35,11 +36,13 @@ export default function AuthenticateAccountPage() {
   const { setUser } = useUserStore();
 
   const handleAuthenticateAccount: SubmitHandler<AuthenticateAccountData> = async ({
-    email,
+    companyIdentificationNumber,
   }) => {
     clearErrors('root');
 
-    const { data, code } = await authenticate({ email });
+    const { data, code } = await authenticate({
+      companyIdentificationNumber: mask.clearCnpj(companyIdentificationNumber),
+    });
 
     switch (code) {
       case 'SUCCESS': {
@@ -52,7 +55,7 @@ export default function AuthenticateAccountPage() {
       }
 
       case 'INVALID_CREDENTIAL': {
-        setError('email', { message: 'Credencial inválida' });
+        setError('companyIdentificationNumber', { message: 'Credencial inválida' });
         break;
       }
 
@@ -76,20 +79,27 @@ export default function AuthenticateAccountPage() {
           Entrar
         </h2>
         <p className="font-inter font-normal text-sm text-gray-600 text-center">
-          Acesse sua conta usando seu e-mail
+          Acesse sua conta usando seu número de CNPJ
         </p>
       </div>
 
       <form
         className="mt-10 max-w-[360px] w-full"
         onSubmit={handleSubmit(handleAuthenticateAccount)}>
-        <InputField
-          type="email"
-          placeholder="Digite seu e-mail"
-          label="E-mail"
-          required={true}
-          error={errors.email?.message}
-          {...register('email')}
+        <Controller
+          control={control}
+          name="companyIdentificationNumber"
+          render={({ field: { value, onChange } }) => (
+            <InputField
+              type="text"
+              placeholder="Digite seu número de CPNJ"
+              label="CNPJ"
+              required={true}
+              error={errors.companyIdentificationNumber?.message}
+              value={value}
+              onChange={({ target }) => onChange(mask.cnpj(target.value))}
+            />
+          )}
         />
         <Button
           disabled={isLoadingAuthenticate}

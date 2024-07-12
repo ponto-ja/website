@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cnpj } from 'cpf-cnpj-validator';
 
 export const registerAccountSchema = z.object({
   firstName: z
@@ -7,10 +8,14 @@ export const registerAccountSchema = z.object({
   lastName: z
     .string({ required_error: 'Campo obrigatório' })
     .min(1, { message: 'Campo obrigatório' }),
-  email: z
+  phoneNumber: z
     .string({ required_error: 'Campo obrigatório' })
     .min(1, { message: 'Campo obrigatório' })
-    .email({ message: 'E-mail inválido' }),
+    .min(15, { message: 'Número de telefone inválido' }),
+  companyIdentificationNumber: z
+    .string({ required_error: 'Campo obrigatório' })
+    .min(1, { message: 'Campo obrigatório' })
+    .refine((input) => cnpj.isValid(input), { message: 'CPNJ inválido' }),
 });
 
 export type RegisterAccountData = z.infer<typeof registerAccountSchema>;
