@@ -14,6 +14,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Ponto Já',
   description: 'Seu negócio com um programa de fidelidade em menos de 2 minutos',
+  verification: {
+    google: 'pHN4QZXyHWnUvfVdqi9acuSmc3AlZKHDL3LFjRdvhLM',
+  },
   openGraph: {
     title: 'Ponto Já',
     description: 'Seu negócio com um programa de fidelidade em menos de 2 minutos',
