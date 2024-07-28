@@ -198,7 +198,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
 
       const { code: scoreCode } = await updateScore({
         id: participant!.score.id,
-        score: scorePerAmount,
+        score: scorePerAmount + participant!.score.score,
       });
 
       if (scoreCode === 'UNEXPECTED_ERROR') {
