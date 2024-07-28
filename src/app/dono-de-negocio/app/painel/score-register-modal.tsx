@@ -84,7 +84,8 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
     isLoadingGetByPhoneNumber,
   } = useParticipant();
   const {
-    isLoadingUpdate,
+    update: updateScore,
+    isLoadingUpdate: isLoadingUpdateScore,
     register: registerScore,
     isLoadingRegister: isLoadingRegisterScore,
   } = useScore();
@@ -104,7 +105,7 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
 
   const isLoading =
     isLoadingCheckSubscription ||
-    isLoadingUpdate ||
+    isLoadingUpdateScore ||
     isLoadingRegisterScoreHistory ||
     isLoadingRegisterParticipant ||
     isLoadingRegisterScore ||
@@ -193,6 +194,22 @@ export const ScoreRegisterModal: FC<ScoreRegisterModalProps> = ({
           });
           return;
         }
+      }
+
+      const { code: scoreCode } = await updateScore({
+        id: participant!.score.id,
+        score: scorePerAmount,
+      });
+
+      if (scoreCode === 'UNEXPECTED_ERROR') {
+        toast({
+          title: 'Ops! Erro inesperado :(',
+          description: 'Houve um erro no cadastro de pontos, tente novamente.',
+          variant: 'destructive',
+          titleClassName: 'text-white',
+          descriptionClassName: 'text-white',
+        });
+        return;
       }
 
       const { code: scoreHistoryCode } = await registerScoreHistory({
